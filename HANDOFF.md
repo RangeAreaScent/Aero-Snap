@@ -20,7 +20,7 @@
   - XcodeGen-managed project (`project.yml`), generated via `xcodegen generate`
 - **Active blockers:**
   - PurchaseManager stubbed — StoreKit product registration + receipt validation pending (deferred ~2026-06-30 with signing/store block)
-  - TCDS source is a 43-row curated seed; full DRS scrape blocked by Angular SPA + auth-gated `/drs-api/*` endpoints (research log + chunk-FMUAZAE7 findings in `data-pipeline/extract_tcds.py` docstring)
+  - TCDS at 43/200 curated (decision 2026-06-01: ship v1 with Option B per [[project-aero-decisions]] §"TCDS strategy"). Curation plan + workflow in `data-pipeline/TCDS_CURATION_PLAN.md`; full DRS scrape (Option A) deferred — research notes in `data-pipeline/DRS_RESEARCH.md`
   - Apple Developer cert (series-wide, deferred ~2026-06-30)
 - **Resolved blockers:**
   - ✅ **Bundle size risk** — decided 2026-05-31: 15-year body cutoff projects to 117 MB at full 23k scale, dead center of spec §3-1 target 115–130 MB. Implementation: `build_db.py --body-cutoff-years 15`. Rationale + measurement in [[project-aero-decisions]] §"Bundle size risk — DECIDED"
@@ -149,5 +149,5 @@ See `memory/project_aero_decisions.md`.
 - Privacy Policy page at
   `rangeareascent.github.io/Snap_Series/aerosnap/privacy/`
 <!-- ADNote UI: shipped 2026-06-01 (ADNoteManager + NoteEditorSheet + yellow note card in ADDetailView) -->
-- TCDS full corpus — currently 43 curated entries
+<!-- TCDS strategy: decided 2026-06-01 (Option B — 200-entry curation in tcds_seed.jsonl, see TCDS_CURATION_PLAN.md). Full corpus = v2 backlog (DRS_RESEARCH.md). -->
 - AD body for older ADs in the 15-yr cutoff zone — full extract pending

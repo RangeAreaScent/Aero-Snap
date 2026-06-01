@@ -320,3 +320,33 @@ with Boeing 737-800, Airbus A320 family, ATA chapter 72 grouping.
 Multi-word FTS body search ("fan AND blade", "corrosion") works.
 
 Pipeline is ready to scale further or pivot to iOS scaffolding.
+
+## 2026-06-01 — TCDS strategy DECIDED
+
+**Decision:** Option B (hand-curated seed) for v1 ship; Option A
+(full DRS scrape) deferred to v2 backlog.
+
+**Why:** Federal Register's modern AD corpus capped at ~9.7k, not
+the 23k we'd budgeted for, so the dataset overall is smaller than
+expected — adding a long-tail TCDS scrape isn't where the marginal
+A&P utility lives in v1. The top ~200 TCDS cover the working-fleet
+queries A&P / IA / owner workflows actually hit (Cessna 172/182,
+Piper PA-28, Bonanza/Baron, Mooney, Cirrus, Bell 206, Lycoming O-
+series, Continental IO-series, Hartzell HC-series). The DRS scrape
+is 1–2 weeks of reverse-engineering work behind an Angular SPA +
+auth-gated `/drs-api/*` for a marginal long-tail gain.
+
+**How to apply:**
+- Curation work is tracked in `data-pipeline/TCDS_CURATION_PLAN.md`
+  (200-entry target broken down by category with per-row progress).
+- Seed data lives in `data-pipeline/tcds_seed.jsonl` — plain JSONL so
+  a non-Python curator can extend it. `extract_tcds.py` loads it.
+- For Option A pickup, see `data-pipeline/DRS_RESEARCH.md` — start
+  from the network-capture experiment in the "Concrete pickup
+  checklist" section. Output should MERGE with the curated seed
+  (curated entries take precedence on conflicts, so curator edits
+  to `specifications` aren't blown away on the next scrape).
+- v1 ships with whatever curation count we hit. If we land at 100/200
+  before App Store submission, that's fine — the in-app TCDS view
+  is already gated on "set this aircraft's model" so partial
+  coverage degrades to "no match" rather than crashing.
