@@ -1,6 +1,10 @@
 # TCDS Curation Plan — v1 Ship Target
 
-**Status (2026-06-01):** 43 of 200 entries curated (`tcds_seed.jsonl`).
+**Status (2026-06-01):** 63 of 200 entries curated (`tcds_seed.jsonl`).
+Batch 2 added 20 high-confidence commodity GA + retired-transport
+entries — see the `// === Batch 2: ...` separator in the seed file.
+Each batch-2 entry should be re-verified against the actual FAA DRS
+PDF before App Store submission.
 
 **Strategy decided:** Option B (hand-curated seed). See
 `memory/project_aero_decisions.md` § "TCDS strategy" for the trade-off
@@ -15,15 +19,15 @@ queries while staying small enough that one curator can finish it in
 
 | Category | Target | Have | Examples (representative, not exhaustive) |
 |----------|-------:|-----:|-------------------------------------------|
-| GA single-engine | 80 | ~15 | Cessna 150/152/172/182/206/210, Piper PA-18/28/32/46, Beech Bonanza/Sundowner, Mooney M20, Cirrus SR20/22, Diamond DA20/40, Grumman AA-1/5, Maule M-7, Aviat Husky, American Champion 7-/8-series |
-| GA twin / light turbine | 30 | ~4 | Piper Aztec / Seneca / Navajo / Cheyenne, Beech Baron / King Air 90/200/350, Cessna 310/337/340/414/421/425/441, Mitsubishi MU-2 |
-| Commercial transport | 20 | ~3 | Boeing 737-700/800/900/MAX, 757-200/300, 767-300, 777-200/300ER, 787-8/9/10, 747-400, A319/320/321 (neo + ceo), A330-200/300/900, A350-900/1000, ERJ-170/175/190, CRJ-700/900 |
-| Rotorcraft | 15 | ~2 | Bell 206/407/412/505/429, Robinson R22/R44/R66, Eurocopter / Airbus AS350/355, EC130/135, Sikorsky S-76, Schweizer 300 |
-| Piston engines | 30 | ~10 | Lycoming O-235/O-320/O-360/IO-360/IO-540/IO-720, Continental O-200/O-300/IO-360/IO-470/IO-520/IO-550/TSIO-520, Rotax 912/914/915 |
-| Turbine engines | 10 | ~2 | P&W PT6A series, JT8D, JT9D, PW100, PW1000G, GE CF6, CF34, CFM56, GE9X, RR Trent series |
-| Propellers | 15 | ~7 | Hartzell HC-A2X / HC-C2YK / HC-E3Y / Top-Prop, McCauley A/B/C/1A/2A/3A, Sensenich M/W series, MT-Propeller |
+| GA single-engine | 80 | 25 | Cessna 150/152/170/172/175/180/182/185/195/206/210, Piper J-3/PA-22/PA-24/PA-28/PA-32, Beech Bonanza/Sundowner, Mooney M20, Cirrus SR20/22, Grumman AA-1/5. Still needed: Diamond DA20/40, Maule M-7, Aviat Husky, American Champion 7-/8-series, Cessna L-19/305, Pilatus PC-12 |
+| GA twin / light turbine | 30 | 9 | Cessna 310/337/Caravan 208, Piper PA-23 Aztec/PA-31/PA-34/PA-44/PA-46, Beech Baron 55 / Duchess 76 / 1900. Still needed: Beech King Air 90/200/350, Cessna 340/414/421/425/441, Piper Cheyenne PA-42, Mitsubishi MU-2 |
+| Commercial transport | 20 | 13 | Boeing 707/717/737 all gens/747 all gens/757/767/777/787, DC-9/MD-80/MD-90, DC-10/MD-11, Airbus A310/A318-321/A330/A350/A380, Embraer ERJ-170/190, Bombardier CRJ. Still needed: A220, Q400, ATR 42/72, Phenom 100/300 |
+| Rotorcraft | 15 | 4 | Bell 47/206/407, Robinson R22/R44. Still needed: Bell 412/505/429, Robinson R66, Eurocopter / Airbus AS350/355, EC130/135, Sikorsky S-76, Schweizer 300 |
+| Piston engines | 30 | 1 | Continental O-200. Still needed: Lycoming O-235/O-320/O-360/IO-360/IO-540/IO-720, Continental O-300/IO-360/IO-470/IO-520/IO-550/TSIO-520, Rotax 912/914/915 |
+| Turbine engines | 10 | 4 | CFM56, LEAP-1A, JT9D, GEnx. Still needed: P&W PT6A series, JT8D, PW100, PW1000G, GE CF6, CF34, GE9X, RR Trent series |
+| Propellers | 15 | 0 | All needed: Hartzell HC-A2X / HC-C2YK / HC-E3Y / Top-Prop, McCauley A/B/C/1A/2A/3A, Sensenich M/W series, MT-Propeller |
 
-Totals: 200 target, 43 in hand — 157 to research.
+Totals: 200 target, 63 in hand — 137 to research.
 
 ## Curation workflow
 
