@@ -19,12 +19,12 @@
   - No GRDB dependency — uses stdlib SQLite3 (ICD/Tariff use GRDB, Aero deliberately keeps iOS+desktop ports dependency-symmetric)
   - XcodeGen-managed project (`project.yml`), generated via `xcodegen generate`
 - **Active blockers:**
-  - Theme system stubbed — full 7-theme port from ICDSnap/COLORWAYS.md pending
   - PurchaseManager stubbed — StoreKit product registration + receipt validation pending (deferred ~2026-06-30 with signing/store block)
   - TCDS source is a 43-row curated seed; full DRS scrape blocked by Angular SPA + auth-gated `/drs-api/*` endpoints (research log + chunk-FMUAZAE7 findings in `data-pipeline/extract_tcds.py` docstring)
   - Apple Developer cert (series-wide, deferred ~2026-06-30)
 - **Resolved blockers:**
   - ✅ **Bundle size risk** — decided 2026-05-31: 15-year body cutoff projects to 117 MB at full 23k scale, dead center of spec §3-1 target 115–130 MB. Implementation: `build_db.py --body-cutoff-years 15`. Rationale + measurement in [[project-aero-decisions]] §"Bundle size risk — DECIDED"
+  - ✅ **Theme system** — done 2026-06-01: 7 themes (system/light/dark + 4 premium) ported from ICDSnap with full palettes, ThemeManager + ThemedListModifier wired into all views, PremiumUnlockSheet shown when locked theme tapped
 - **Next 3 steps:**
   1. `xcodegen generate` → open in Xcode 16 → build for iPhone 17 simulator → smoke-test 5 search modes against the bundled 985-AD SQLite
   2. Port the shared shell from ICD Snap iOS: full ThemeManager + COLORWAYS hex + 7 themes + SettingsView complete + Onboarding polish (playbook §5 ADAPTATION_GUIDE steps 3 + 8)
@@ -135,8 +135,6 @@ See `memory/project_aero_decisions.md`.
 ## What's NOT built yet (next 1-2 sessions)
 
 - App icon family (need ~6 PNGs at 1024×1024 — primary + alternates)
-- Full 7-theme system (port from ICDSnap/Managers/ThemeManager.swift
-  + COLORWAYS.md hex values; current ThemeManager is a stub)
 - Full PurchaseManager StoreKit integration (App Store Connect product
   registration deferred ~2026-06-30 with signing/store block)
 - SwiftData VersionedSchema + SchemaMigrationPlan (pre-release wipe

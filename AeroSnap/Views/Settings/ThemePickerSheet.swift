@@ -4,6 +4,7 @@ struct ThemePickerSheet: View {
     @Environment(ThemeManager.self) private var themeManager
     @Environment(PurchaseManager.self) private var purchaseManager
     @Environment(\.dismiss) private var dismiss
+    @State private var showPremiumSheet = false
 
     private var freeThemes: [AppTheme] { AppTheme.allCases.filter { !$0.isPremium } }
     private var premiumThemes: [AppTheme] { AppTheme.allCases.filter { $0.isPremium } }
@@ -45,6 +46,11 @@ struct ThemePickerSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showPremiumSheet) {
+                PremiumUnlockSheet()
+                    .environment(purchaseManager)
+                    .environment(themeManager)
+            }
         }
     }
 
@@ -53,6 +59,7 @@ struct ThemePickerSheet: View {
         let isSelected = themeManager.current == theme
         return Button {
             if isLocked {
+                showPremiumSheet = true
                 Haptics.notification(.warning)
             } else {
                 themeManager.select(theme, unlocked: purchaseManager.isUnlocked)
