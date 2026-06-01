@@ -25,6 +25,7 @@
 - **Resolved blockers:**
   - ✅ **Bundle size risk** — decided 2026-05-31: 15-year body cutoff projects to 117 MB at full 23k scale, dead center of spec §3-1 target 115–130 MB. Implementation: `build_db.py --body-cutoff-years 15`. Rationale + measurement in [[project-aero-decisions]] §"Bundle size risk — DECIDED"
   - ✅ **Theme system** — done 2026-06-01: 7 themes (system/light/dark + 4 premium) ported from ICDSnap with full palettes, ThemeManager + ThemedListModifier wired into all views, PremiumUnlockSheet shown when locked theme tapped
+  - ✅ **Onboarding polish** — done 2026-06-01: ScrollView + GeometryReader for small-screen safety, hero icon swap (UIImage.appIcon when installed → airplane SF fallback), 4 circle-bg feature rows, audience-targeted footer
 - **Next 3 steps:**
   1. `xcodegen generate` → open in Xcode 16 → build for iPhone 17 simulator → smoke-test 5 search modes against the bundled 985-AD SQLite
   2. Port the shared shell from ICD Snap iOS: full ThemeManager + COLORWAYS hex + 7 themes + SettingsView complete + Onboarding polish (playbook §5 ADAPTATION_GUIDE steps 3 + 8)
