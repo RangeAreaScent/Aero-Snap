@@ -39,38 +39,19 @@ struct AeroSnapApp: App {
     }
 
     private static func makeModelContainer() -> ModelContainer {
-        let schema = Schema([
-            FavoriteAD.self,
-            AircraftCollection.self,
-            AircraftCollectionItem.self,
-            ADNote.self,
-        ])
+        let schema = Schema(versionedSchema: AeroSnapSchemaV1.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
-            return try ModelContainer(for: schema, configurations: config)
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: AeroSnapMigrationPlan.self,
+                configurations: config
+            )
         } catch {
-            // Pre-release wipe fallback. Replace with VersionedSchema +
-            // SchemaMigrationPlan before App Store submission.
-            print("[AeroSnap] ModelContainer init failed, wiping store: \(error)")
-            Self.wipeLocalStores()
-            do {
-                return try ModelContainer(for: schema, configurations: config)
-            } catch {
-                fatalError("Failed to initialize ModelContainer after wipe: \(error)")
-            }
-        }
-    }
-
-    private static func wipeLocalStores() {
-        let fm = FileManager.default
-        guard let appSupport = try? fm.url(
-            for: .applicationSupportDirectory, in: .userDomainMask,
-            appropriateFor: nil, create: false
-        ) else { return }
-        guard let contents = try? fm.contentsOfDirectory(at: appSupport,
-                                                         includingPropertiesForKeys: nil) else { return }
-        for url in contents where url.lastPathComponent.contains(".store") {
-            try? fm.removeItem(at: url)
+            // Migration plan failed — that's a real bug (the plan should
+            // cover every shipped → current schema transition). Surface
+            // it loudly so it can't slip past testflight.
+            fatalError("ModelContainer init failed: \(error)")
         }
     }
 }
