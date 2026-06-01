@@ -143,6 +143,6 @@ See `memory/project_aero_decisions.md`.
 - PDF export + CSV export of saved ADs / collections
 - Privacy Policy page at
   `rangeareascent.github.io/Snap_Series/aerosnap/privacy/`
-- Note system (`ADNote` SwiftData model exists, no UI yet)
+<!-- ADNote UI: shipped 2026-06-01 (ADNoteManager + NoteEditorSheet + yellow note card in ADDetailView) -->
 - TCDS full corpus — currently 43 curated entries
 - AD body for older ADs in the 15-yr cutoff zone — full extract pending

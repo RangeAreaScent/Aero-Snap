@@ -23,6 +23,7 @@ struct AeroSnapApp: App {
             ContentView()
                 .environment(FavoriteManager.shared)
                 .environment(AircraftCollectionManager.shared)
+                .environment(ADNoteManager.shared)
                 .environment(themeManager)
                 .environment(purchaseManager)
                 .tint(themeManager.tint)
@@ -30,6 +31,7 @@ struct AeroSnapApp: App {
                 .task {
                     FavoriteManager.shared.setup(context: modelContainer.mainContext)
                     AircraftCollectionManager.shared.setup(context: modelContainer.mainContext)
+                    ADNoteManager.shared.setup(context: modelContainer.mainContext)
                     await purchaseManager.start()
                 }
         }

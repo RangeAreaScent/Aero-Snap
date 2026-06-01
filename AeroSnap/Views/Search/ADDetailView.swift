@@ -6,8 +6,10 @@ struct ADDetailView: View {
 
     @Environment(FavoriteManager.self) private var favorites
     @Environment(AircraftCollectionManager.self) private var collectionManager
+    @Environment(ADNoteManager.self) private var notes
     @Query(filter: #Predicate<AircraftCollection> { $0.kindRaw == "folder" },
            sort: \AircraftCollection.name) private var folders: [AircraftCollection]
+    @Query private var allNotes: [ADNote]
 
     @AppStorage("copyFormat") private var copyFormatRaw: String = CopyFormat.withTitle.rawValue
     private var defaultCopyFormat: CopyFormat {
@@ -18,6 +20,13 @@ struct ADDetailView: View {
     @State private var applicability: [ADApplicability] = []
     @State private var loaded = false
     @State private var showAddToCollection = false
+    @State private var showNoteEditor = false
+
+    /// Computed from @Query so the section reactively updates when the
+    /// note is edited or deleted from this view.
+    private var currentNote: ADNote? {
+        allNotes.first { $0.adNumber == adNumber }
+    }
 
     var body: some View {
         ScrollView {
@@ -32,6 +41,9 @@ struct ADDetailView: View {
                         sectionDivider("Applies to (\(applicability.count))")
                         applicabilityList
                     }
+
+                    sectionDivider("Notes")
+                    noteSection
 
                     if d.bodyDropped {
                         sectionDivider("Full text")
@@ -56,6 +68,20 @@ struct ADDetailView: View {
         .navigationTitle("AD \(adNumber)")
         .navigationBarTitleDisplayMode(.inline)
         .overlay(CopyToastOverlay(), alignment: .top)
+        .sheet(isPresented: $showNoteEditor) {
+            NoteEditorSheet(
+                adNumber: adNumber,
+                initialBody: currentNote?.body ?? "",
+                onSave: { newBody in
+                    notes.save(adNumber: adNumber, body: newBody)
+                    Haptics.notification(.success)
+                },
+                onDelete: currentNote == nil ? nil : {
+                    notes.delete(adNumber: adNumber)
+                    Haptics.impact(.medium)
+                }
+            )
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -216,6 +242,44 @@ struct ADDetailView: View {
             }
         }
         .font(.callout)
+    }
+
+    @ViewBuilder
+    private var noteSection: some View {
+        if let note = currentNote {
+            Button {
+                showNoteEditor = true
+            } label: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(note.body)
+                        .font(.callout)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Updated \(note.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.yellow.opacity(0.35), lineWidth: 0.5)
+                )
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button {
+                showNoteEditor = true
+            } label: {
+                Label("Add a note", systemImage: "square.and.pencil")
+                    .font(.callout)
+                    .foregroundStyle(.tint)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     @ViewBuilder
