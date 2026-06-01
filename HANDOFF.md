@@ -145,7 +145,7 @@ See `memory/project_aero_decisions.md`.
   registration deferred ~2026-06-30 with signing/store block)
 - SwiftData VersionedSchema + SchemaMigrationPlan (pre-release wipe
   fallback is in place per §5 ADAPTATION_GUIDE)
-- PDF export + CSV export of saved ADs / collections
+<!-- PDF + CSV export: shipped 2026-06-01 (Exporter.swift, ShareLink menu in Favorites + Folder collection detail) -->
 - Privacy Policy page at
   `rangeareascent.github.io/Snap_Series/aerosnap/privacy/`
 <!-- ADNote UI: shipped 2026-06-01 (ADNoteManager + NoteEditorSheet + yellow note card in ADDetailView) -->

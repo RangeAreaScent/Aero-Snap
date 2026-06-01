@@ -335,6 +335,40 @@ private struct FolderDetailBody: View {
                 }
             }
         }
+        .toolbar {
+            if !items.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    let safeName = collection.name.replacingOccurrences(of: " ", with: "-")
+                    Menu {
+                        ShareLink(
+                            item: Exporter.tempFile(
+                                named: "aero-snap-\(safeName).csv",
+                                content: Exporter.csv(folder: collection, items: items)
+                            ),
+                            preview: SharePreview("\(collection.name) (CSV)",
+                                                  image: Image(systemName: "tablecells"))
+                        ) {
+                            Label("Export as CSV", systemImage: "tablecells")
+                        }
+                        ShareLink(
+                            item: Exporter.tempFile(
+                                named: "aero-snap-\(safeName).pdf",
+                                data: Exporter.pdf(
+                                    title: "Aero Snap — \(collection.name)",
+                                    plainText: Exporter.plainText(folder: collection, items: items)
+                                )
+                            ),
+                            preview: SharePreview("\(collection.name) (PDF)",
+                                                  image: Image(systemName: "doc.richtext"))
+                        ) {
+                            Label("Export as PDF", systemImage: "doc.richtext")
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+        }
         .task { await loadItems() }
     }
 

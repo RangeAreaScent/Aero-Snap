@@ -25,6 +25,39 @@ struct FavoritesView: View {
                 }
             }
             .navigationTitle("Favorites")
+            .toolbar {
+                if !ads.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            ShareLink(
+                                item: Exporter.tempFile(
+                                    named: "aero-snap-favorites.csv",
+                                    content: Exporter.csv(favoriteADs: ads)
+                                ),
+                                preview: SharePreview("Favorites (CSV)",
+                                                      image: Image(systemName: "tablecells"))
+                            ) {
+                                Label("Export as CSV", systemImage: "tablecells")
+                            }
+                            ShareLink(
+                                item: Exporter.tempFile(
+                                    named: "aero-snap-favorites.pdf",
+                                    data: Exporter.pdf(
+                                        title: "Aero Snap — Favorites",
+                                        plainText: Exporter.plainText(favoriteADs: ads)
+                                    )
+                                ),
+                                preview: SharePreview("Favorites (PDF)",
+                                                      image: Image(systemName: "doc.richtext"))
+                            ) {
+                                Label("Export as PDF", systemImage: "doc.richtext")
+                            }
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
+                }
+            }
             .navigationDestination(for: SearchHit.self) { hit in
                 switch hit {
                 case .ad(let s):   ADDetailView(adNumber: s.adNumber)
