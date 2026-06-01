@@ -146,8 +146,7 @@ See `memory/project_aero_decisions.md`.
 - SwiftData VersionedSchema + SchemaMigrationPlan (pre-release wipe
   fallback is in place per §5 ADAPTATION_GUIDE)
 <!-- PDF + CSV export: shipped 2026-06-01 (Exporter.swift, ShareLink menu in Favorites + Folder collection detail) -->
-- Privacy Policy page at
-  `rangeareascent.github.io/Snap_Series/aerosnap/privacy/`
+<!-- Privacy Policy: shipped 2026-06-01 (PRIVACY.md in repo + index.html pushed to Snap_Series/aerosnap/privacy/ → rangeareascent.github.io/Snap_Series/aerosnap/privacy/) -->
 <!-- ADNote UI: shipped 2026-06-01 (ADNoteManager + NoteEditorSheet + yellow note card in ADDetailView) -->
 <!-- TCDS strategy: decided 2026-06-01 (Option B — 200-entry curation in tcds_seed.jsonl, see TCDS_CURATION_PLAN.md). Full corpus = v2 backlog (DRS_RESEARCH.md). -->
 - AD body for older ADs in the 15-yr cutoff zone — full extract pending
