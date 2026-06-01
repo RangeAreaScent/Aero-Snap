@@ -1,0 +1,83 @@
+# XcodeGen manifest for Aero Snap iOS.
+#
+# Generate the .xcodeproj with:
+#   brew install xcodegen   # if not already installed
+#   xcodegen generate
+#
+# Then open AeroSnap.xcodeproj in Xcode (≥ 16) and Run on iPhone 17 simulator
+# (per SNAP_SERIES_GUIDE §5 "Local dev conventions").
+#
+# Bundle id is locked at scaffold per §4 "Scaffold-time gate".
+
+name: AeroSnap
+options:
+  bundleIdPrefix: com.ryan
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_LANGUAGE: en
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: YES
+
+targets:
+  AeroSnap:
+    type: application
+    platform: iOS
+    sources:
+      - path: AeroSnap
+        excludes:
+          - Preview Content
+        # XcodeGen sorts by extension — .swift → Compile, .sqlite/.json → Resources
+      - path: AeroSnap/Preview Content
+        buildPhase: none
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ryan.aerosnap
+        PRODUCT_NAME: "Aero Snap"
+        IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+        TARGETED_DEVICE_FAMILY: "1,2"   # iPhone + iPad
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIRequiredDeviceCapabilities: arm64
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Ryan."
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SUPPORTS_MACCATALYST: NO
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        DEVELOPMENT_ASSET_PATHS: '"AeroSnap/Preview Content"'
+
+  AeroSnapTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AeroSnapTests
+    dependencies:
+      - target: AeroSnap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ryan.aerosnap.tests
+        IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  AeroSnap:
+    build:
+      targets:
+        AeroSnap: all
+        AeroSnapTests: [test]
+    run:
+      config: Debug
+      # Default destination — per playbook §5, all iOS testing uses iPhone 17.
+      # Override at runtime with: xcodebuild test -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest'
+    test:
+      config: Debug
+      targets:
+        - AeroSnapTests

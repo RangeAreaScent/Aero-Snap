@@ -1,0 +1,68 @@
+# Aero Snap — iOS project root .gitignore
+# Patterns informed by:
+#   - SNAP_SERIES_GUIDE.md §12 #6 (AppleDouble files break Windows builds)
+#   - XcodeGen-managed project (project.yml is source of truth)
+
+# === XcodeGen-generated project ===
+# The .xcodeproj is rebuilt by `xcodegen generate`; project.yml is the
+# source of truth. Committing the regenerated pbxproj produces noisy
+# diffs and conflicts with iCloud Drive (the cause of "AeroSnap 2.xcodeproj"
+# duplicates).
+AeroSnap.xcodeproj/
+
+# === Xcode build artifacts ===
+DerivedData/
+build/
+*.xcuserdatad/
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+
+# === Swift Package Manager ===
+.swiftpm/
+Packages/
+Package.resolved
+.build/
+
+# === iOS sim + archive ===
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcarchive
+
+# === macOS metadata + iCloud cruft ===
+# `.DS_Store` is harmless on macOS but creates noise.
+# `._*` (AppleDouble) files break Windows builds per playbook §12 #6 —
+# critical to ignore in the desktop sister project too.
+.DS_Store
+._*
+
+# iCloud Drive duplicate-on-conflict naming pattern. The "AeroSnap 2.xcodeproj"
+# incident (2026-05-31) showed iCloud creates " 2" copies when xcodegen
+# regenerates a bundle dir mid-sync. Catch all such duplicates wholesale.
+* 2.xcodeproj/
+* 2.app/
+* 2
+
+# === Editor / IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === Python virtualenv (data-pipeline) ===
+# (data-pipeline/.gitignore handles the per-file pipeline patterns)
+.venv/
+__pycache__/
+*.pyc
+
+# === Local dev caches that shouldn't ship ===
+.cache/
+
+# === Bundled SQLite (regenerated via data-pipeline/build_db.py) ===
+# Excluded during dev to keep the repo light; revisit (LFS vs direct
+# commit) when a release build needs it. See HANDOFF.md "How to build"
+# for regeneration steps.
+AeroSnap/Resources/*.sqlite
