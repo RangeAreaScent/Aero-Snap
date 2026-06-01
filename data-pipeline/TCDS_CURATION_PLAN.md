@@ -1,10 +1,15 @@
 # TCDS Curation Plan — v1 Ship Target
 
-**Status (2026-06-01):** 63 of 200 entries curated (`tcds_seed.jsonl`).
-Batch 2 added 20 high-confidence commodity GA + retired-transport
+**Status (2026-06-01):** 62 of 200 entries curated (`tcds_seed.jsonl`).
+Batch 2 added 19 high-confidence commodity GA + retired-transport
 entries — see the `// === Batch 2: ...` separator in the seed file.
 Each batch-2 entry should be re-verified against the actual FAA DRS
 PDF before App Store submission.
+
+The pipeline now fails the build if two seed rows share the same
+`tcds_number` (caught at `extract_tcds.py` time, before SQLite
+silently dedups). Curators get a clear "duplicate at line N and M"
+error instead of a "row count is off by one" mystery.
 
 **Strategy decided:** Option B (hand-curated seed). See
 `memory/project_aero_decisions.md` § "TCDS strategy" for the trade-off
@@ -21,13 +26,13 @@ queries while staying small enough that one curator can finish it in
 |----------|-------:|-----:|-------------------------------------------|
 | GA single-engine | 80 | 25 | Cessna 150/152/170/172/175/180/182/185/195/206/210, Piper J-3/PA-22/PA-24/PA-28/PA-32, Beech Bonanza/Sundowner, Mooney M20, Cirrus SR20/22, Grumman AA-1/5. Still needed: Diamond DA20/40, Maule M-7, Aviat Husky, American Champion 7-/8-series, Cessna L-19/305, Pilatus PC-12 |
 | GA twin / light turbine | 30 | 9 | Cessna 310/337/Caravan 208, Piper PA-23 Aztec/PA-31/PA-34/PA-44/PA-46, Beech Baron 55 / Duchess 76 / 1900. Still needed: Beech King Air 90/200/350, Cessna 340/414/421/425/441, Piper Cheyenne PA-42, Mitsubishi MU-2 |
-| Commercial transport | 20 | 13 | Boeing 707/717/737 all gens/747 all gens/757/767/777/787, DC-9/MD-80/MD-90, DC-10/MD-11, Airbus A310/A318-321/A330/A350/A380, Embraer ERJ-170/190, Bombardier CRJ. Still needed: A220, Q400, ATR 42/72, Phenom 100/300 |
+| Commercial transport | 20 | 12 | Boeing 717/737 all gens/747 all gens/757/767/777/787, DC-9/MD-80/MD-90, Airbus A310/A318-321/A330/A350/A380, Embraer ERJ-170/190, Bombardier CRJ. Still needed: Boeing 707/720, DC-10/MD-11 (collided with 757 TCDS A22WE on first attempt — confirm exact number before re-adding), A220, Q400, ATR 42/72, Phenom 100/300 |
 | Rotorcraft | 15 | 4 | Bell 47/206/407, Robinson R22/R44. Still needed: Bell 412/505/429, Robinson R66, Eurocopter / Airbus AS350/355, EC130/135, Sikorsky S-76, Schweizer 300 |
 | Piston engines | 30 | 1 | Continental O-200. Still needed: Lycoming O-235/O-320/O-360/IO-360/IO-540/IO-720, Continental O-300/IO-360/IO-470/IO-520/IO-550/TSIO-520, Rotax 912/914/915 |
 | Turbine engines | 10 | 4 | CFM56, LEAP-1A, JT9D, GEnx. Still needed: P&W PT6A series, JT8D, PW100, PW1000G, GE CF6, CF34, GE9X, RR Trent series |
 | Propellers | 15 | 0 | All needed: Hartzell HC-A2X / HC-C2YK / HC-E3Y / Top-Prop, McCauley A/B/C/1A/2A/3A, Sensenich M/W series, MT-Propeller |
 
-Totals: 200 target, 63 in hand — 137 to research.
+Totals: 200 target, 62 in hand — 138 to research.
 
 ## Curation workflow
 

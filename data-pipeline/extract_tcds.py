@@ -41,17 +41,35 @@ def load_seed(path: Path) -> list[dict]:
               file=sys.stderr)
         sys.exit(1)
     out: list[dict] = []
+    seen: dict[str, int] = {}   # tcds_number → first-line lineno
+    duplicates: list[tuple[str, int, int]] = []
     with path.open("r", encoding="utf-8") as f:
         for lineno, line in enumerate(f, start=1):
             line = line.strip()
             if not line or line.startswith("//"):
                 continue
             try:
-                out.append(json.loads(line))
+                row = json.loads(line)
             except json.JSONDecodeError as e:
                 print(f"[extract_tcds] ERROR: {path}:{lineno}: {e}",
                       file=sys.stderr)
                 sys.exit(1)
+            num = row.get("tcds_number", "")
+            if num in seen:
+                duplicates.append((num, seen[num], lineno))
+            else:
+                seen[num] = lineno
+            out.append(row)
+    if duplicates:
+        # Fail loudly — the build_db.py INSERT OR REPLACE silently
+        # drops dups, which means a wrong-but-collision entry can
+        # silently overwrite a correct one (and the curator only
+        # notices because the row count is off by one).
+        for num, first, second in duplicates:
+            print(f"[extract_tcds] ERROR: duplicate tcds_number "
+                  f"{num!r} at {path}:{first} and {path}:{second}",
+                  file=sys.stderr)
+        sys.exit(1)
     return out
 
 
