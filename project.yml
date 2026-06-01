@@ -53,6 +53,10 @@ targets:
         # Required so the asset catalog's AppIcon ships in the bundle
         # and UIImage.appIcon (CFBundleIcons lookup) resolves to it.
         INFOPLIST_KEY_CFBundleIconName: AppIcon
+        # Premium-theme alternate icons. Xcode auto-generates the
+        # CFBundleAlternateIcons Info.plist entries from this list, so
+        # UIApplication.setAlternateIconName(name) works for each.
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIconSkyBlue AppIconPeachPink AppIconDeepCharcoal AppIconBlueberry"
         SUPPORTS_MACCATALYST: NO
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"

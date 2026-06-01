@@ -8,7 +8,9 @@ struct SettingsView: View {
     @AppStorage("copyFormat") private var copyFormatRaw: String = CopyFormat.withTitle.rawValue
     @AppStorage("bluebookCitation") private var bluebookCitation: Bool = false
 
+    @Environment(AppIconManager.self) private var iconManager
     @State private var showThemePicker = false
+    @State private var showIconPicker = false
     @State private var restoreResultMessage: String?
     @State private var meta: [String: String] = [:]
 
@@ -36,6 +38,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showThemePicker) {
                 ThemePickerSheet()
+            }
+            .sheet(isPresented: $showIconPicker) {
+                AppIconPickerSheet()
             }
             .alert("Restore Purchase", isPresented: Binding(
                 get: { restoreResultMessage != nil },
@@ -70,6 +75,26 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
             .themedRowBackground()
+
+            if iconManager.supportsAlternateIcons {
+                Button {
+                    showIconPicker = true
+                } label: {
+                    HStack {
+                        Label("App Icon", systemImage: "app.badge")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(iconManager.currentIcon.label)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .themedRowBackground()
+            }
         }
     }
 

@@ -24,6 +24,7 @@ struct AeroSnapApp: App {
                 .environment(FavoriteManager.shared)
                 .environment(AircraftCollectionManager.shared)
                 .environment(ADNoteManager.shared)
+                .environment(AppIconManager.shared)
                 .environment(themeManager)
                 .environment(purchaseManager)
                 .tint(themeManager.tint)
