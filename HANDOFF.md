@@ -54,18 +54,23 @@ open AeroSnap.xcodeproj         # Xcode 16+
 # Run (Cmd-R) — should launch with onboarding then 6 tabs
 ```
 
-Bundled SQLite is at `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB
-full23k build as of 2026-06-01; gitignored — regenerate locally via
-the data pipeline). When the full 23k AD extract lands, rebuild via:
+Bundled SQLite is at `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB,
+**dataset_version=v1** as of 2026-06-01, 9,691 ADs + 9,814 applicability
+rows + 1,022 FAR + 43 TCDS + 779 AC, 4,007 ADs with body dropped by the
+15-yr cutoff). Gitignored — regenerate locally via the data pipeline.
+Federal Register's modern AD corpus capped out at ~9.7k (not 23k as
+originally feared), so this *is* the full ship-scale corpus. Rebuild
+with:
 
 ```bash
 cd data-pipeline
 python3 extract_ad.py --limit 23000 --out data/ad_full.jsonl
 python3 build_ad_applicability.py --ad data/ad_full.jsonl --out data/ad_appl_full.jsonl
-python3 build_db.py --body-cutoff-years 15 -o data/aero_snap_v1.sqlite \
-    --ad data/ad_full.jsonl --far data/far_2026-05-30.jsonl \
+python3 build_db.py --body-cutoff-years 15 --dataset-version v1 \
+    -o data/aero_snap_v1.sqlite \
+    --ad data/ad_full23k.jsonl --far data/far_2026-05-30.jsonl \
     --tcds data/tcds_2026-05-31.jsonl --ac data/ac_2026-05-31.jsonl \
-    --applicability data/ad_appl_full.jsonl
+    --applicability data/ad_applicability_full23k.jsonl
 cp data/aero_snap_v1.sqlite ../AeroSnap/Resources/
 ```
 

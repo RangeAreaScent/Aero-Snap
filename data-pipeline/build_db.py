@@ -121,10 +121,10 @@ def populate_fts(conn: sqlite3.Connection) -> None:
 
 
 def write_meta(conn: sqlite3.Connection, counts: dict[str, int],
-               build_date: str) -> None:
+               build_date: str, dataset_version: str) -> None:
     meta_rows = [
         ("schema_version", "1"),
-        ("dataset_version", "v1-poc"),
+        ("dataset_version", dataset_version),
         ("build_date", build_date),
     ]
     for table, n in counts.items():
@@ -149,6 +149,9 @@ def main() -> int:
                         help="Drop AD body for ADs older than N years "
                              "(summary + URLs retained). Bundle-size mitigation. "
                              "Recommended: 7 (aggressive) or 15 (conservative).")
+    parser.add_argument("--dataset-version", default="v1-poc",
+                        help="Meta tag for the bundled DB. Use 'v1' for the "
+                             "first full-scale ship; 'v1-poc' for early builds.")
     args = parser.parse_args()
 
     schema_path = Path(args.schema)
@@ -197,7 +200,7 @@ def main() -> int:
 
             populate_fts(conn)
             counts["_body_dropped"] = body_dropped
-            write_meta(conn, counts, build_date)
+            write_meta(conn, counts, build_date, args.dataset_version)
 
         conn.execute("ANALYZE")
         conn.execute("VACUUM")
