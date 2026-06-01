@@ -1,0 +1,68 @@
+name: CI
+
+# Verifies the iOS project compiles cleanly and the data pipeline is
+# syntactically valid on every push + PR. Full xcodebuild test runs
+# require the bundled SQLite (gitignored — too large for the repo),
+# so the test step is left to local dev for now; see HANDOFF.md
+# "How to build" for the local-test workflow.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ios-build:
+    name: iOS — xcodegen + xcodebuild build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build for iOS Simulator (iPhone 17)
+        run: |
+          xcodebuild build \
+            -project AeroSnap.xcodeproj \
+            -scheme AeroSnap \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+
+  pipeline-lint:
+    name: data-pipeline — Python syntax + TCDS seed validity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile-check every pipeline script
+        run: |
+          cd data-pipeline
+          python3 -m py_compile *.py
+
+      - name: TCDS seed structural validation
+        # extract_tcds.py reads tcds_seed.jsonl, fails on duplicate
+        # tcds_number, invalid JSON, or missing required fields.
+        # Runs entirely offline against the checked-in seed.
+        run: |
+          cd data-pipeline
+          mkdir -p data
+          python3 extract_tcds.py --out data/tcds_ci_check.jsonl
+          python3 -c "
+          import json
+          with open('data/tcds_ci_check.jsonl') as f:
+              rows = [json.loads(line) for line in f if line.strip()]
+          assert len(rows) >= 60, f'TCDS row count regressed: {len(rows)} < 60'
+          print(f'OK: {len(rows)} TCDS entries')
+          "
