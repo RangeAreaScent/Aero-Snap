@@ -270,7 +270,7 @@ private struct AircraftDetailBody: View {
                     Text("No model set").foregroundStyle(.secondary)
                 }
             }
-            Section("Applicable ADs (\(ads.count))") {
+            Section {
                 if collection.model == nil {
                     Text("Set this aircraft's model to auto-match ADs.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -279,7 +279,7 @@ private struct AircraftDetailBody: View {
                         Label("No matches in current dataset", systemImage: "info.circle")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        Text("The current dataset covers recent ADs (2023+). Older or general-aviation models like \(collection.model ?? "") may not appear until the full corpus extract lands.")
+                        Text("No AD in the bundled corpus references \(collection.model ?? "this model") in its applicability matrix. Try a broader designation (e.g. \"172\" instead of \"172S\") — applicability rows are keyed to the AD's model field as published.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -291,11 +291,25 @@ private struct AircraftDetailBody: View {
                         }
                     }
                 }
+            } header: {
+                Text("Applicable ADs (\(ads.count))")
+            } footer: {
+                if !ads.isEmpty {
+                    Text("Sorted by effective date, most recent first. Matches via the AD ↔ Make/Model applicability table, not free-text search.")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
         .task {
             if let model = collection.model {
-                ads = await AeroRepository.shared.searchADByMakeModel(model)
+                // Generous limit — popular GA airframes (Cessna 172, PA-28,
+                // 737NG) can easily exceed the default search-result cap of
+                // 50. The "Applicable ADs" view is curated for one aircraft,
+                // not a search result page, so the user expects exhaustiveness.
+                ads = await AeroRepository.shared.searchADByMakeModel(
+                    model, limit: 500
+                )
             }
         }
     }
