@@ -39,6 +39,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryan.aerosnap
         PRODUCT_NAME: "Aero Snap"
+        PRODUCT_MODULE_NAME: AeroSnap
         IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         TARGETED_DEVICE_FAMILY: "1,2"   # iPhone + iPad
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
@@ -66,6 +67,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryan.aerosnap.tests
         IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Aero Snap.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Aero Snap"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 
 schemes:
   AeroSnap:

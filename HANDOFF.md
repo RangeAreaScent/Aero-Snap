@@ -6,7 +6,7 @@
 - **Wave:** 3
 - **Stage:** 1 scaffold
 - **Last updated:** 2026-05-31
-- **Repo:** iCloud Drive — not a git repo
+- **Repo:** github.com/RangeAreaScent/Aero-Snap (public, switch to private at release stabilization)
 - **Latest release:** none
 - **Latest CI:** n/a (no CI)
 - **Bundle id:** com.ryan.aerosnap (locked at scaffold per §4)
@@ -53,9 +53,9 @@ open AeroSnap.xcodeproj         # Xcode 16+
 # Run (Cmd-R) — should launch with onboarding then 6 tabs
 ```
 
-Bundled SQLite is at `AeroSnap/Resources/aero_snap_v1.sqlite` (13.94 MB,
-985 ADs + 1,022 FAR + 1,806 applicability + 43 TCDS + 779 ACs). When
-the full 23k AD extract lands, rebuild via:
+Bundled SQLite is at `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB
+full23k build as of 2026-06-01; gitignored — regenerate locally via
+the data pipeline). When the full 23k AD extract lands, rebuild via:
 
 ```bash
 cd data-pipeline
