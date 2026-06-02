@@ -26,12 +26,16 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build for iOS Simulator (iPhone 17, iOS 26.5)
+      - name: Build for iOS Simulator (iPhone 17)
+        # OS=latest because the GitHub Actions macos-15 runner image
+        # tracks Xcode/iOS-SDK on its own cadence — pinning to 26.5
+        # silently breaks when the runner pre-installs only 26.4 or
+        # downgrades. Local dev pins to 26.5 explicitly (see HANDOFF).
         run: |
           xcodebuild build \
             -project AeroSnap.xcodeproj \
             -scheme AeroSnap \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO
 
