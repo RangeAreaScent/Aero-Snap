@@ -55,12 +55,18 @@ open AeroSnap.xcodeproj         # Xcode 16+
 ```
 
 Bundled SQLite is at `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB,
-**dataset_version=v1** as of 2026-06-01, 9,691 ADs + 9,814 applicability
-rows + 1,022 FAR + 43 TCDS + 779 AC, 4,007 ADs with body dropped by the
-15-yr cutoff). Gitignored — regenerate locally via the data pipeline.
-Federal Register's modern AD corpus capped out at ~9.7k (not 23k as
-originally feared), so this *is* the full ship-scale corpus. Rebuild
-with:
+**dataset_version=v1** as of 2026-06-01, **9,408 unique ADs** (deduped
+from 9,691 jsonl rows — Federal Register API returned 271 dup AD
+numbers; build_db.py now logs the drop) + 9,814 applicability rows +
+1,022 FAR + 63 TCDS + 779 AC, 4,007 ADs with body dropped by the
+15-yr cutoff (some of those drops were on dup rows that were
+themselves discarded, so ~5,567 ADs ship with body text in the
+end). Gitignored — regenerate locally via the data pipeline.
+Federal Register's modern AD corpus capped out at ~9.4k unique
+records (not 23k as originally feared), so this *is* the full
+ship-scale corpus. Query timing on the bundled SQLite is excellent:
+AD#/ATA/FTS lookups <0.1 ms median, Make/Model JOIN ~8 ms median.
+Rebuild with:
 
 ```bash
 cd data-pipeline

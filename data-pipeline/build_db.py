@@ -78,9 +78,31 @@ def project(row: dict, cols: list[str]) -> tuple:
     return tuple(row.get(c) for c in cols)
 
 
-def bulk_insert(conn: sqlite3.Connection, table: str, rows: list[dict]) -> int:
+def bulk_insert(conn: sqlite3.Connection, table: str, rows: list[dict],
+                dedup_by: str | None = None) -> int:
+    """Insert `rows` into `table`. If `dedup_by` is given, drop
+    duplicate keys BEFORE insert (last-write-wins, same as the
+    underlying INSERT OR REPLACE) and log how many were dropped so
+    the silent dedup is visible.
+
+    Returns the number of rows that actually landed in the table.
+    """
     if not rows:
         return 0
+    if dedup_by:
+        seen: dict = {}
+        for r in rows:
+            key = r.get(dedup_by)
+            if key is not None:
+                seen[key] = r          # last write wins
+        deduped = list(seen.values())
+        dropped = len(rows) - len(deduped)
+        if dropped:
+            print(f"[build_db] {table}: dedup dropped {dropped} duplicate "
+                  f"`{dedup_by}` rows ({len(rows)} → {len(deduped)})",
+                  file=sys.stderr)
+        rows = deduped
+
     cols = COLS[table]
     placeholders = ",".join(["?"] * len(cols))
     col_list = ",".join(cols)
@@ -187,16 +209,24 @@ def main() -> int:
 
         with conn:
             counts = {}
+            # Dedup by the PK column for tables with a natural key
+            # so the meta count matches what's actually queryable.
+            # ad_applicability has no natural key — multiple
+            # (mfr, model) rows per AD are valid, no dedup.
             counts["airworthiness_directives"] = bulk_insert(
-                conn, "airworthiness_directives", ad_rows)
+                conn, "airworthiness_directives", ad_rows,
+                dedup_by="ad_number")
             counts["type_certificates"] = bulk_insert(
-                conn, "type_certificates", tcds_rows)
+                conn, "type_certificates", tcds_rows,
+                dedup_by="tcds_number")
             counts["ad_applicability"] = bulk_insert(
                 conn, "ad_applicability", appl_rows)
             counts["far_sections"] = bulk_insert(
-                conn, "far_sections", far_rows)
+                conn, "far_sections", far_rows,
+                dedup_by="citation")
             counts["advisory_circulars"] = bulk_insert(
-                conn, "advisory_circulars", ac_rows)
+                conn, "advisory_circulars", ac_rows,
+                dedup_by="ac_number")
 
             populate_fts(conn)
             counts["_body_dropped"] = body_dropped
