@@ -1,7 +1,10 @@
 import SwiftUI
 
 struct AboutView: View {
+    @Environment(PurchaseManager.self) private var purchaseManager
     @State private var meta: [String: String] = [:]
+    @State private var detector = SecretTapDetector()
+    @State private var secretToast: String?
 
     private let appVersion: String = {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -13,6 +16,7 @@ struct AboutView: View {
         List {
             heroSection
             whatItDoesSection
+            usageExamplesSection
             disclaimerSection
             databaseSection
             sourcesSection
@@ -23,8 +27,30 @@ struct AboutView: View {
         .themedListBackground()
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
+        .overlay(alignment: .top) {
+            if let msg = secretToast {
+                Text(msg)
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(.regularMaterial, in: Capsule())
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: secretToast)
         .task {
             meta = await AeroRepository.shared.databaseMeta()
+            detector.onSuccess = {
+                let nowUnlocked = purchaseManager.debugToggleUnlock()
+                Haptics.notification(.success)
+                secretToast = nowUnlocked
+                    ? "🛠 Supporter unlocked (debug)"
+                    : "🔒 Supporter relocked (debug)"
+                Task {
+                    try? await Task.sleep(for: .seconds(1.8))
+                    secretToast = nil
+                }
+            }
         }
     }
 
@@ -39,6 +65,12 @@ struct AboutView: View {
                 Text("Version \(appVersion)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    // Hidden trigger: 6 taps as 3 double-tap pairs with
+                    // ~2s gaps between pairs unlocks/relocks supporter
+                    // for debug + App Store review. See SecretTapDetector.
+                    .contentShape(Rectangle())
+                    .onTapGesture { detector.registerTap() }
+                    .accessibilityHidden(true)
                 Text("Every AD, FAR, and TCDS — offline, on the hangar floor.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -88,6 +120,88 @@ struct AboutView: View {
             }
             .font(.callout)
             .padding(.vertical, 2)
+        }
+    }
+
+    // MARK: - Usage examples
+
+    private var usageExamplesSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 14) {
+                useCase(
+                    icon: "wrench.and.screwdriver.fill",
+                    iconColor: .blue,
+                    title: "Pre-flight AD check on a Cessna 172",
+                    steps: [
+                        "Search → **Make/Model** → type \"Cessna 172\"",
+                        "Sort by Effective date; scan ATA-32 (landing gear), ATA-72 (engine) hits",
+                        "Star the open ones; they land in **Favorites** for the day's logbook"
+                    ]
+                )
+                useCase(
+                    icon: "folder.fill.badge.person.crop",
+                    iconColor: .teal,
+                    title: "Fleet management for an A&P shop",
+                    steps: [
+                        "**Collections** → add a folder per tail number (N12345, N67890…)",
+                        "Set the aircraft model — applicable ADs auto-populate via the AD ↔ Model JOIN",
+                        "Check off complied items + add shop notes per AD; export the folder to PDF/CSV before the customer hand-off"
+                    ]
+                )
+                useCase(
+                    icon: "book.fill",
+                    iconColor: .orange,
+                    title: "Citing 14 CFR in a return-to-service log",
+                    steps: [
+                        "**Search** → switch to **14 CFR** mode → \"43.13\"",
+                        "Long-press the row → Copy citation (or toggle Bluebook style in Settings → Copy Format for legal-doc work)",
+                        "Or browse the full Part 43 from the **FAR** tab"
+                    ]
+                )
+                useCase(
+                    icon: "airplane.circle.fill",
+                    iconColor: .purple,
+                    title: "Cross-referencing TCDS to ADs",
+                    steps: [
+                        "**Search** → **TCDS** mode → look up the aircraft's type certificate (e.g. 3A12 for the 172)",
+                        "Open the TCDS detail → tap **View applicable ADs** for an instant cross-reference",
+                        "Tap into any AD to see its applicability matrix + Federal Register link"
+                    ]
+                )
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("How people use it")
+        } footer: {
+            Text("Five search modes cover almost every lookup an A&P, IA, or owner-pilot reaches for in the hangar.")
+                .font(.footnote)
+        }
+    }
+
+    private func useCase(icon: String, iconColor: Color,
+                         title: String, steps: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.subheadline)
+                    .foregroundStyle(iconColor)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(steps.enumerated()), id: \.offset) { i, step in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text("\(i + 1).")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.tertiary)
+                            .frame(width: 16, alignment: .trailing)
+                        Text(LocalizedStringKey(step))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(.leading, 26)
         }
     }
 

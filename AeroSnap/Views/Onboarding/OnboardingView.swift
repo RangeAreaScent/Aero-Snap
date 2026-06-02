@@ -32,22 +32,22 @@ struct OnboardingView: View {
                         FeatureRow(
                             symbolName: "magnifyingglass",
                             iconColor: .blue,
-                            text: "Search by AD #, Make/Model, ATA chapter, or 14 CFR citation"
-                        )
-                        FeatureRow(
-                            symbolName: "folder.fill",
-                            iconColor: .teal,
-                            text: "Auto-match ADs to every tail number you maintain"
+                            text: "**9,400+ Airworthiness Directives** — search by AD #, Make/Model, ATA chapter, 14 CFR citation, or full text"
                         )
                         FeatureRow(
                             symbolName: "book.fill",
                             iconColor: .orange,
-                            text: "Full 14 CFR browser and TCDS catalog at your fingertips"
+                            text: "**1,000+ 14 CFR sections** + **62 TCDS** + **770+ Advisory Circular** index, all browsable offline"
+                        )
+                        FeatureRow(
+                            symbolName: "folder.fill",
+                            iconColor: .teal,
+                            text: "Folder per tail number — applicable ADs auto-match, you check off compliance, export to PDF or CSV"
                         )
                         FeatureRow(
                             symbolName: "wifi.slash",
                             iconColor: .purple,
-                            text: "100% offline. No ads, no subscriptions, no tracking"
+                            text: "100% offline. No ads, no account, no tracking. Optional supporter unlock for premium themes"
                         )
                     }
                     .padding(.horizontal, 32)
@@ -124,7 +124,9 @@ private struct FeatureRow: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(iconColor)
             }
-            Text(text)
+            // `LocalizedStringKey` parses **bold** markdown inline so
+            // each row can highlight the count without a separate Text.
+            Text(LocalizedStringKey(text))
                 .font(.body)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -112,4 +112,21 @@ final class PurchaseManager {
             await transaction.finish()
         }
     }
+
+    // MARK: - Debug / TestFlight unlock
+
+    /// Toggle the supporter unlock without going through StoreKit. Wired
+    /// to the SecretTapDetector on the AboutView version row so beta
+    /// testers and App Store reviewers can audit premium content without
+    /// a sandbox purchase. Mirrors the cache key so the toggle survives
+    /// a relaunch.
+    ///
+    /// Returns the new `isUnlocked` value for the caller to surface a
+    /// confirmation (toast, haptic).
+    @discardableResult
+    func debugToggleUnlock() -> Bool {
+        isUnlocked.toggle()
+        UserDefaults.standard.set(isUnlocked, forKey: Self.cacheKey)
+        return isUnlocked
+    }
 }
