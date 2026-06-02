@@ -110,7 +110,7 @@ See `memory/project_aero_decisions.md`.
 ## iOS scaffold (Stage 0 → 1, 2026-05-31)
 
 - `project.yml` — XcodeGen manifest, bundle id `com.ryan.aerosnap`
-  locked, iOS 18.0 deployment target, Swift 6.0
+  locked, iOS 26.5 deployment target, Swift 6.0
 - `AeroSnap/AeroSnapApp.swift` — entry point with SwiftData container
   (FavoriteAD / AircraftCollection / AircraftCollectionItem / ADNote)
 - `AeroSnap/ContentView.swift` — 6-tab structure

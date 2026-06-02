@@ -31,7 +31,7 @@ Total bundle: **86 MB**, comfortably under the iOS / App Store size envelope.
 
 ```
 Aero-Snap/
-├── AeroSnap/                  # SwiftUI iOS app (Swift 6.0, iOS 18.0+)
+├── AeroSnap/                  # SwiftUI iOS app (Swift 6.0, iOS 26.5+)
 │   ├── Data/
 │   │   ├── Models/            # ADSummary, FARSection, TCDSummary, etc.
 │   │   ├── Repository/        # actor wrapping stdlib SQLite3
