@@ -2,28 +2,49 @@ import SwiftUI
 
 struct FARView: View {
     @State private var parts: [String] = []
+    @State private var loaded = false
 
     var body: some View {
         NavigationStack {
-            List(parts, id: \.self) { p in
-                NavigationLink(value: p) {
-                    HStack {
-                        Text("14 CFR Part \(p)")
-                            .font(.headline)
-                        Spacer()
-                        Text(partLabel(p))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            Group {
+                if !loaded {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if parts.isEmpty {
+                    ContentUnavailableView(
+                        "14 CFR data missing",
+                        systemImage: "doc.text.magnifyingglass",
+                        description: Text("The bundled SQLite has no FAR sections. Rebuild the data pipeline (see HANDOFF.md).")
+                    )
+                } else {
+                    List(parts, id: \.self) { p in
+                        NavigationLink(value: p) {
+                            HStack {
+                                Text("14 CFR Part \(p)")
+                                    .font(.headline)
+                                Spacer()
+                                Text(partLabel(p))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 2)
+                            // VoiceOver: "14 CFR Part 91, General Operating Rules"
+                            // beats the default which would only read the Text
+                            // and skip the secondary label.
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("14 CFR Part \(p), \(partLabel(p))")
+                            .accessibilityHint("Browse sections in this Part")
+                        }
+                        .themedRowBackground()
                     }
-                    .padding(.vertical, 2)
+                    .themedListBackground()
                 }
-                .themedRowBackground()
             }
-            .themedListBackground()
             .navigationTitle("14 CFR")
             .navigationDestination(for: String.self) { FARPartView(part: $0) }
             .task {
                 self.parts = await AeroRepository.shared.allFARParts()
+                self.loaded = true
             }
         }
     }
@@ -46,20 +67,35 @@ struct FARView: View {
 struct FARPartView: View {
     let part: String
     @State private var sections: [FARSection] = []
+    @State private var loaded = false
 
     var body: some View {
-        List(sections) { s in
-            NavigationLink(value: s) {
-                FARRow(section: s)
+        Group {
+            if !loaded {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if sections.isEmpty {
+                ContentUnavailableView(
+                    "No sections",
+                    systemImage: "doc.text.magnifyingglass",
+                    description: Text("Part \(part) has no sections in the bundled corpus.")
+                )
+            } else {
+                List(sections) { s in
+                    NavigationLink(value: s) {
+                        FARRow(section: s)
+                    }
+                    .themedRowBackground()
+                }
+                .themedListBackground()
             }
-            .themedRowBackground()
         }
-        .themedListBackground()
         .navigationTitle("Part \(part)")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: FARSection.self) { FARDetailView(section: $0) }
         .task {
             self.sections = await AeroRepository.shared.farSections(part: part)
+            self.loaded = true
         }
     }
 }

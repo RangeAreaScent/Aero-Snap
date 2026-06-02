@@ -84,12 +84,14 @@ struct ADDetailView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                let isFav = favorites.isFavorite(adNumber: adNumber)
                 Button {
                     favorites.toggle(adNumber: adNumber)
                     Haptics.impact(.light)
                 } label: {
-                    Image(systemName: favorites.isFavorite(adNumber: adNumber) ? "star.fill" : "star")
+                    Image(systemName: isFav ? "star.fill" : "star")
                 }
+                .accessibilityLabel(isFav ? "Remove from Favorites" : "Add to Favorites")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -107,6 +109,7 @@ struct ADDetailView: View {
                     }
                 } label: {
                     Image(systemName: "folder.badge.plus")
+                        .accessibilityLabel("Add to folder")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -140,6 +143,7 @@ struct ADDetailView: View {
             }
         } label: {
             Image(systemName: "doc.on.doc")
+                .accessibilityLabel("Copy")
         }
     }
 
