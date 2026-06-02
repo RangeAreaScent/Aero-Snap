@@ -38,6 +38,13 @@ struct ADRow: View {
             }
         }
         .padding(.vertical, 4)
+        // VoiceOver: "Airworthiness Directive 2024-17-05, emergency,
+        // Boeing 737-800 nacelle fan-blade inspection, ATA 72, effective 2024-09-01"
+        // beats the default which would read each of the 4-5 Text views
+        // separately and stutter on "AD" / "EAD" abbreviations.
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(a11yLabel)
+        .accessibilityHint("Opens the AD detail view")
         // Swipe-from-leading for one-tap copy in the user's default format.
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button {
@@ -60,6 +67,15 @@ struct ADRow: View {
             } label: { Label("Copy AD number + title", systemImage: "text.line.first.and.arrowtriangle.forward") }
         }
     }
+
+    private var a11yLabel: String {
+        var parts: [String] = ["Airworthiness Directive \(summary.adNumber)"]
+        if summary.isEmergency { parts.append("emergency") }
+        parts.append(summary.title)
+        if let ata = summary.ataChapter { parts.append("ATA chapter \(ata)") }
+        if let date = summary.effectiveDate { parts.append("effective \(date)") }
+        return parts.joined(separator: ", ")
+    }
 }
 
 struct FARRow: View {
@@ -79,6 +95,9 @@ struct FARRow: View {
                 .lineLimit(2)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(displayCitation), \(section.heading)")
+        .accessibilityHint("Opens the section text")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button {
                 let t = AeroCopier.copy(section, format: copyFormat, bluebook: bluebookCitation)

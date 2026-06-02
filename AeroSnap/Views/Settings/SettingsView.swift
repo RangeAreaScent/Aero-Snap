@@ -176,14 +176,8 @@ struct SettingsView: View {
     }
 
     private func formatCount(_ raw: String) -> String? {
-        Int(raw).map { Self.numberFormatter.string(from: NSNumber(value: $0)) ?? "\($0)" }
+        Int(raw).map { $0.formatted(.number) }
     }
-
-    private static let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
 
     // MARK: - About
 

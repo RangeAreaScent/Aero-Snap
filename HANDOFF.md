@@ -2,35 +2,42 @@
 
 <!-- snap-series:manager-block:start -->
 - **App:** Aero Snap
-- **Platform:** iOS
+- **Platform:** iOS (Swift 6.0, iOS 26.5+, Xcode 26.5)
 - **Wave:** 3
-- **Stage:** 1 scaffold
-- **Last updated:** 2026-05-31
+- **Stage:** 2 feature-complete pre-release (App Store submission gated on Apple Developer cert)
+- **Last updated:** 2026-06-01
 - **Repo:** github.com/RangeAreaScent/Aero-Snap (public, switch to private at release stabilization)
 - **Latest release:** none
-- **Latest CI:** n/a (no CI)
+- **Latest CI:** GitHub Actions green — `ios-build` + `pipeline-lint` jobs on every push/PR
 - **Bundle id:** com.ryan.aerosnap (locked at scaffold per §4)
-- **Dataset:** FAA AD + 14 CFR + TCDS + AC, ~115–130 MB target at full 23k scale. **PoC SQLite 13.94 MB** bundled in app (985 ADs + 1,022 FAR sections + 1,806 applicability rows + 43 TCDS seed + 779 ACs) built 2026-05-31, license: public domain. Production build will be `build_db.py --body-cutoff-years 15`
+- **Dataset:** **v1 stamped 2026-06-01** — `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB, gitignored). 9,408 unique ADs (deduped from 9,691 Federal Register rows — see `build_db.py` dedup logging) + 9,814 applicability rows + 1,022 FAR sections + 62 curated TCDS + 779 AC. 4,007 older AD bodies dropped per 15-yr cutoff; summary + Federal Register links retained. Query timing on real corpus: AD# / ATA / FTS lookups <0.1 ms median, Make/Model JOIN ~8 ms.
 - **Deviations from playbook:**
   - Folder naming hyphenated (`Aero-Snap/` not `Aero Snap/`) for CLI friendliness — see [[project-aero-decisions]]
-  - 5th tab `Aircraft` (TCDS + N-Number) + 6th tab `FAR` (14 CFR browser) — per spec §5, justified by maintenance workflow priority
+  - 5-tab IA (Search / FAR / Favorites / Collections / Settings) — TCDS folded into Search as a 6th search mode, "My Aircraft" folded into Collections per spec §5
   - 5 search modes (AD#, Make/Model, ATA chapter, 14 CFR citation, full-text) vs default 1
-  - Collections rebranded `My Aircraft` (N-Number-keyed folders) per spec §4-3
   - No GRDB dependency — uses stdlib SQLite3 (ICD/Tariff use GRDB, Aero deliberately keeps iOS+desktop ports dependency-symmetric)
   - XcodeGen-managed project (`project.yml`), generated via `xcodegen generate`
 - **Active blockers:**
-  - PurchaseManager stubbed — StoreKit product registration + receipt validation pending (deferred ~2026-06-30 with signing/store block)
-  - TCDS at 43/200 curated (decision 2026-06-01: ship v1 with Option B per [[project-aero-decisions]] §"TCDS strategy"). Curation plan + workflow in `data-pipeline/TCDS_CURATION_PLAN.md`; full DRS scrape (Option A) deferred — research notes in `data-pipeline/DRS_RESEARCH.md`
-  - Apple Developer cert (series-wide, deferred ~2026-06-30)
+  - PurchaseManager stubbed — StoreKit product registration + receipt validation pending (deferred ~2026-06-30 with Apple Developer cert)
+  - Apple Developer cert (series-wide, deferred ~2026-06-30) — gates StoreKit, signed builds, TestFlight, App Store submission
+- **In-flight workstreams:**
+  - TCDS curation: 62/200 (Option B per [[project-aero-decisions]] §"TCDS strategy"). Plan + per-category targets in `data-pipeline/TCDS_CURATION_PLAN.md`; Option A (DRS scrape) backlog in `data-pipeline/DRS_RESEARCH.md`. Pipeline now refuses duplicate `tcds_number` at extract time.
 - **Resolved blockers:**
-  - ✅ **Bundle size risk** — decided 2026-05-31: 15-year body cutoff projects to 117 MB at full 23k scale, dead center of spec §3-1 target 115–130 MB. Implementation: `build_db.py --body-cutoff-years 15`. Rationale + measurement in [[project-aero-decisions]] §"Bundle size risk — DECIDED"
-  - ✅ **Theme system** — done 2026-06-01: 7 themes (system/light/dark + 4 premium) ported from ICDSnap with full palettes, ThemeManager + ThemedListModifier wired into all views, PremiumUnlockSheet shown when locked theme tapped
-  - ✅ **Onboarding polish** — done 2026-06-01: ScrollView + GeometryReader for small-screen safety, hero icon swap (UIImage.appIcon when installed → airplane SF fallback), 4 circle-bg feature rows, audience-targeted footer
+  - ✅ **Bundle size** — 15-yr body cutoff lands at 86 MB, well inside the spec §3-1 115–130 MB envelope. Decision logged in [[project-aero-decisions]] §"Bundle size risk — DECIDED"; implementation in `build_db.py --body-cutoff-years 15`.
+  - ✅ **Theme system** — 7 themes (system/light/dark + 4 premium: Sky Blue, Peach Pink, Deep Charcoal, Blueberry) with full palettes + ThemedListModifier across all views + PremiumUnlockSheet for locked taps.
+  - ✅ **Onboarding** — ScrollView + GeometryReader for small-screen safety, real `UIImage.appIcon` hero, 4 circle-bg feature rows, audience-targeted footer.
+  - ✅ **ADNote UI** — ADNoteManager + yellow note card in ADDetailView + focused TextEditor sheet with delete in bottom bar.
+  - ✅ **PDF/CSV export** — Favorites + Folder collections, ShareLink menu, RFC 4180 CSV + paginated US-Letter PDF via CoreText.
+  - ✅ **App icon family** — primary + 4 alternates (per-premium-theme) generated by `tools/make_app_icon.py`, AppIconManager wraps `setAlternateIconName`, picker UI gated on `isPremium`.
+  - ✅ **SwiftData migration plan** — AeroSnapSchemaV1 + AeroSnapMigrationPlan replace the dev-only wipe fallback; container init now fatals loudly on migration error so testflight catches schema bugs.
+  - ✅ **Data pipeline meta bug** — caught 2026-06-01: Federal Register returned 271 dup AD numbers, `bulk_insert` was returning input count not landed count → `count_airworthiness_directives` was wrong by 283 in Settings/About. Now deduped + logged + meta reflects real DB row count.
+  - ✅ **CI** — `.github/workflows/ci.yml` runs `xcodebuild build` on iPhone 17 / iOS 26.5 + `pipeline-lint` (py_compile + TCDS seed structural validation including dedup guard) on every push/PR.
+  - ✅ **Privacy** — `PRIVACY.md` in repo + `index.html` live at https://rangeareascent.github.io/Snap_Series/aerosnap/privacy/ (HTTP 200 verified).
 - **Next 3 steps:**
-  1. `xcodegen generate` → open in Xcode 16 → build for iPhone 17 simulator → smoke-test 5 search modes against the bundled 985-AD SQLite
-  2. Port the shared shell from ICD Snap iOS: full ThemeManager + COLORWAYS hex + 7 themes + SettingsView complete + Onboarding polish (playbook §5 ADAPTATION_GUIDE steps 3 + 8)
-  3. Tackle TCDS full scrape (reverse-engineer DRS auth) OR commit to growing the curated seed list to ~200 entries for v1
-- **Report-back trigger:** any commit on main, any tag push, any new blocker, any SPEC change, any data-pipeline milestone, first successful Xcode build
+  1. Apple Developer cert lands (~2026-06-30) → register the supporter SKU, wire StoreKit purchase + restore against real Sandbox, validate the PremiumUnlockSheet end-to-end.
+  2. App Store metadata + screenshot set (use the 7-theme palette to vary the screenshots; new in-app icon picker is screenshot-worthy too).
+  3. Continue TCDS curation toward 100/200 (source-based work — open DRS PDFs and append to `tcds_seed.jsonl`; pipeline dedup-guard will catch collisions).
+- **Report-back trigger:** any commit on main, any tag push, any new blocker, any SPEC change, any data-pipeline milestone, first successful TestFlight upload
 <!-- snap-series:manager-block:end -->
 
 ## Overview
@@ -80,78 +87,59 @@ python3 build_db.py --body-cutoff-years 15 --dataset-version v1 \
 cp data/aero_snap_v1.sqlite ../AeroSnap/Resources/
 ```
 
-## What's built (2026-05-31)
+## What's built (2026-06-01)
 
-- `data-pipeline/` — Python pipeline producing the bundled SQLite
-  - `schema.sql` — SPEC §3 verbatim + FTS5 (ad/far/tcds) + indexes
-  - `extract_far.py` — eCFR XML API → JSONL. **1,022 sections shipped.**
-  - `extract_ad.py` — Federal Register API → JSONL. **1,000 ADs at scale (985 parsed, 98.5%).**
-  - `build_ad_applicability.py` — regex parser, ~60-entry manufacturer
-    whitelist, model-list expansion. **1,806 rows from 985 ADs, 2.5% UNKNOWN.**
-  - `build_db.py` — JSONL → SQLite + FTS5 + meta table
-  - `analyze_extraction.py` — coverage / quality reporter
-  - `extract_tcds.py`, `extract_ac.py` — stub only
-  - Cache layer: `data/raw/` for FR + eCFR responses (re-runs are free)
+### data-pipeline (Python ETL)
+- `extract_far.py` — eCFR XML API → JSONL. **1,022 sections shipped.**
+- `extract_ad.py` — Federal Register API → JSONL. **9,691 fetched, 9,408 unique after dedup.**
+- `build_ad_applicability.py` — regex parser with ~60-entry manufacturer whitelist + model-list expansion. **9,814 rows; 9.2% UNKNOWN manufacturer (corpus characteristic, not a bug).**
+- `extract_tcds.py` — loads `tcds_seed.jsonl` (62 curated entries, dedup-guarded). DRS full scrape deferred — see `DRS_RESEARCH.md`.
+- `extract_ac.py` — FAA AC index (779 entries; titles + URLs, bodies open via Safari).
+- `build_db.py` — JSONL → SQLite + FTS5 + meta. Dedups by PK with stderr logging. `--body-cutoff-years 15 --dataset-version v1` is the ship invocation.
+- `schema.sql` — `airworthiness_directives`, `ad_applicability`, `far_sections`, `type_certificates`, `advisory_circulars`, `meta`, plus FTS5 mirrors for ad/far/tcds and indexes for ata/effective_date/applicability.
+- `TCDS_CURATION_PLAN.md` + `DRS_RESEARCH.md` — curation workflow and DRS-scrape backlog notes.
+- Cache layer in `data/raw/` so re-runs of FR + eCFR extractors are free.
 
-PoC SQLite at `data-pipeline/data/aero_snap_v1.sqlite` (13.73 MB,
-985 ADs + 1,806 applicability rows + 1,022 FAR sections).
-Smoke-tested with 7 real queries:
-- "ADs applying to Boeing 737-800" → 8 hits, date-sorted, with ATA chapter
-- AD supersede chain (2026-10-06 → supersedes 2020-24-08) — works
-- FTS5 multi-word: `corrosion`, `fan AND blade` — both work
-- ATA chapter 72 grouped by manufacturer/model → engines correctly inventoried
-- § 91.417 (maintenance records) citation lookup → returns clean body
-- Date-range + manufacturer-family filter (A320 family since 2026-05) — works
+### iOS app (`AeroSnap/`)
+- `AeroSnapApp.swift` — SwiftData container via `VersionedSchema` + `MigrationPlan`; environment-injects Favorite / AircraftCollection / ADNote / AppIcon managers and ThemeManager / PurchaseManager.
+- `ContentView.swift` — 5 tabs (Search / FAR / Favorites / Collections / Settings); first-launch onboarding via fullScreenCover.
+- `Data/Models/AeroEntities.swift` — ADSummary, ADDetail, ADApplicability, FARSection, TCDSummary, ACEntry.
+- `Data/SwiftData/SwiftDataModels.swift` — FavoriteAD, AircraftCollection, AircraftCollectionItem, ADNote.
+- `Data/SwiftData/SchemaMigration.swift` — AeroSnapSchemaV1 + AeroSnapMigrationPlan (V1 only today; add V2 here when shapes change).
+- `Data/Repository/AeroRepository.swift` — `actor` wrapping stdlib SQLite3, 5 search modes + detail loaders + ad↔model JOINs + databaseMeta().
+- `ViewModels/SearchViewModel.swift` — debounced query, mode picker, heterogeneous `SearchHit` (AD/FAR/TCDS/AC).
+- `Views/`
+  - `Search/` — SearchView (5 modes + history), ADRow, ADDetailView (favorite/folder/copy toolbar with a11y labels; Notes section with NoteEditorSheet), FARRow + FARDetailView (Bluebook citation toggle), TCDSDetailView + ADsForTCDSView (live specifications panel, generous limit, real empty state), ACRow + ACDetailView, NoteEditorSheet.
+  - `FAR/FARView.swift` — Parts browser with loading/empty states + a11y-combined rows.
+  - `Favorites/FavoritesView.swift` — list + ShareLink menu (CSV / PDF).
+  - `Collections/AircraftCollectionsView.swift` — Aircraft (auto-match via applicability JOIN, limit 500) + Folder (manual list with per-AD compliance, ShareLink menu, swipe-to-delete).
+  - `Settings/{SettingsView, ThemePickerSheet, AppIconPickerSheet, AboutView}.swift` — Appearance (theme + app icon pickers, both with PremiumUnlockSheet path), Copy format + Bluebook toggle, Feedback haptics, Data meta, About, Support.
+  - `Common/{PremiumUnlockSheet, CopyToast, ThemedListModifier}.swift`
+  - `Onboarding/OnboardingView.swift` — ScrollView + GeometryReader + 4 themed feature rows.
+- `Managers/` — FavoriteManager, AircraftCollectionManager, ADNoteManager, AppIconManager, ThemeManager, PurchaseManager (stubbed StoreKit).
+- `Export/Exporter.swift` — RFC 4180 CSV + paginated US-Letter PDF via CoreText.
+- `Extensions/` — Color+Hex, Haptics, Pasteboard+Copy, String+SearchTokens, UIImage+AppIcon.
+- `Assets.xcassets/` — AppIcon + 4 alternates (`AppIconSkyBlue`, `AppIconPeachPink`, `AppIconDeepCharcoal`, `AppIconBlueberry`) + parallel Preview imagesets for the picker.
+- `Resources/aero_snap_v1.sqlite` — gitignored, regenerated by `build_db.py`.
+
+### Tests + CI
+- `AeroSnapTests/` — **17 Swift Testing cases** across 2 suites:
+  - `AeroRepositorySmokeTests` (7): all 5 search modes + TCDS seed + batch-2 regression guard.
+  - `ExporterTests` (10): RFC 4180 quoting edge cases, CSV header/CRLF, plain-text formatting, PDF magic bytes + multi-page pagination.
+- `.github/workflows/ci.yml` — `ios-build` on iPhone 17 / iOS 26.5 + `pipeline-lint` (py_compile + TCDS seed structural validation).
+
+### Tooling + docs
+- `tools/make_app_icon.py` — single-source generator for the icon family (5 appiconsets + 5 preview imagesets).
+- `README.md`, `PRIVACY.md`, `HANDOFF.md` (this file), `SPEC.md`, `memory/project_aero_decisions.md`.
 
 ## Decisions log
 
 See `memory/project_aero_decisions.md`.
 
-## iOS scaffold (Stage 0 → 1, 2026-05-31)
+## What's NOT built yet
 
-- `project.yml` — XcodeGen manifest, bundle id `com.ryan.aerosnap`
-  locked, iOS 26.5 deployment target, Swift 6.0
-- `AeroSnap/AeroSnapApp.swift` — entry point with SwiftData container
-  (FavoriteAD / AircraftCollection / AircraftCollectionItem / ADNote)
-- `AeroSnap/ContentView.swift` — 6-tab structure
-  (Search / **Aircraft** / **FAR** / Favorites / **My Aircraft** /
-  Settings), domain extensions per spec §5
-- `AeroSnap/Data/Models/AeroEntities.swift` — 5 domain types
-  (ADSummary, ADDetail, ADApplicability, FARSection, TCDSummary, ACEntry)
-- `AeroSnap/Data/Repository/AeroRepository.swift` — actor wrapping
-  stdlib SQLite3, 5 search modes + detail loaders + cross-table
-  applicability JOIN
-- `AeroSnap/ViewModels/SearchViewModel.swift` — 5 search modes per
-  spec §4-1, debounced query, heterogeneous SearchHit (AD/FAR)
-- `AeroSnap/Views/`
-  - `Search/{SearchView, ADRow, ADDetailView}.swift` — segmented mode
-    picker, AD detail with applicability matrix display, body-dropped
-    notice for 15-yr cutoff cases, FAR detail with copy-citation toolbar
-  - `Aircraft/AircraftView.swift` — TCDS catalog + category filter +
-    "ADs for this aircraft" cross-link (spec §4-2 workflow)
-  - `FAR/FARView.swift` — 8-part 14 CFR browser with friendly labels
-  - `Favorites/FavoritesView.swift` — backed by SwiftData FavoriteAD
-  - `Collections/AircraftCollectionsView.swift` — N-Number-keyed
-    folders with auto-matched ADs (spec §4-3)
-  - `Settings/SettingsView.swift` — data version display + premium row
-  - `Onboarding/OnboardingView.swift`
-- `AeroSnap/Managers/` — FavoriteManager, AircraftCollectionManager,
-  ThemeManager (stub), PurchaseManager (stub, supporterProductID
-  `com.ryan.aerosnap.supporter` locked)
-- `AeroSnap/Extensions/Haptics.swift`
-- `AeroSnap/Resources/aero_snap_v1.sqlite` — bundled
-- `AeroSnap/Assets.xcassets` — AppIcon + AccentColor placeholders
-- `AeroSnapTests/AeroSnapTests.swift` — 4 smoke tests using
-  Swift Testing (`@Test`, `@Suite`), targets iPhone 17 simulator
-
-## What's NOT built yet (next 1-2 sessions)
-
-<!-- App icon: shipped 2026-06-01 (primary 1024×1024 capsule-airplane on system blue + 4 alternates per premium theme — SkyBlue/PeachPink/DeepCharcoal/Blueberry — all generated by tools/make_app_icon.py with parallel preview imagesets for the in-app picker. AppIconManager handles UIApplication.setAlternateIconName wiring, picker UI at Settings → Appearance → App Icon.) -->
-- Full PurchaseManager StoreKit integration (App Store Connect product
-  registration deferred ~2026-06-30 with signing/store block)
-<!-- SwiftData VersionedSchema: shipped 2026-06-01 (AeroSnapSchemaV1 + AeroSnapMigrationPlan in Data/SwiftData/SchemaMigration.swift; wipe fallback replaced with fatalError so migration bugs can't slip past testflight) -->
-<!-- PDF + CSV export: shipped 2026-06-01 (Exporter.swift, ShareLink menu in Favorites + Folder collection detail) -->
-<!-- Privacy Policy: shipped 2026-06-01 (PRIVACY.md in repo + index.html pushed to Snap_Series/aerosnap/privacy/ → rangeareascent.github.io/Snap_Series/aerosnap/privacy/) -->
-<!-- ADNote UI: shipped 2026-06-01 (ADNoteManager + NoteEditorSheet + yellow note card in ADDetailView) -->
-<!-- TCDS strategy: decided 2026-06-01 (Option B — 200-entry curation in tcds_seed.jsonl, see TCDS_CURATION_PLAN.md). Full corpus = v2 backlog (DRS_RESEARCH.md). -->
-- AD body for older ADs in the 15-yr cutoff zone — full extract pending
+- **Full PurchaseManager StoreKit integration** — App Store Connect product registration + receipt validation. Blocked on Apple Developer cert (~2026-06-30).
+- **TestFlight + App Store submission** — same Developer cert dependency. Screenshots / metadata draft pending.
+- **TCDS curation 62 → 200** — source-based work (DRS PDFs + EASA mirror). Per-category targets and workflow in `data-pipeline/TCDS_CURATION_PLAN.md`.
+- **Desktop sister project** — `Aero-Snap_Mac_Win_app/` is an empty placeholder. Scaffold scheduled after first iOS release stabilizes.
+- **Optional future polish** — Spotlight indexing (`NSUserActivity` per AD), Quick Actions, widgets, localization.

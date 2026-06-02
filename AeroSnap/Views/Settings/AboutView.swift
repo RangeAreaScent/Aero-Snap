@@ -305,14 +305,8 @@ struct AboutView: View {
 
     private func formatCount(_ raw: String?) -> String {
         guard let raw, let n = Int(raw) else { return "—" }
-        return Self.numberFormatter.string(from: NSNumber(value: n)) ?? "\(n)"
+        return n.formatted(.number)
     }
-
-    private static let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
 
     private var privacyURL: URL {
         URL(string: "https://rangeareascent.github.io/Snap_Series/aerosnap/privacy/")!

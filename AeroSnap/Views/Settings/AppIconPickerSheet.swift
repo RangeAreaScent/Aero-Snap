@@ -58,6 +58,11 @@ struct AppIconPickerSheet: View {
     private func iconRow(_ icon: AppIcon) -> some View {
         let isLocked = icon.isPremium && !purchaseManager.isUnlocked
         let isSelected = iconManager.currentIcon == icon
+        // If the user's current theme matches this icon (e.g. they've
+        // got Sky Blue theme on and this row is the Sky Blue icon),
+        // surface that with a small chip — encourages the visual
+        // pairing without forcing it.
+        let matchesCurrentTheme = icon.matchingTheme.map { $0 == themeManager.current } ?? false
         return Button {
             if isLocked {
                 showPremiumSheet = true
@@ -75,7 +80,11 @@ struct AppIconPickerSheet: View {
                     Text(icon.label)
                         .foregroundStyle(.primary)
                         .font(.body.weight(.medium))
-                    if isLocked {
+                    if matchesCurrentTheme {
+                        Label("Matches your theme", systemImage: "paintpalette.fill")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.tint)
+                    } else if isLocked {
                         Text("Premium")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -96,6 +105,20 @@ struct AppIconPickerSheet: View {
         }
         .buttonStyle(.plain)
         .themedRowBackground()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(a11yLabel(icon: icon, isLocked: isLocked,
+                                      isSelected: isSelected,
+                                      matchesTheme: matchesCurrentTheme))
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : [.isButton])
+    }
+
+    private func a11yLabel(icon: AppIcon, isLocked: Bool,
+                           isSelected: Bool, matchesTheme: Bool) -> String {
+        var parts: [String] = [icon.label]
+        if isSelected      { parts.append("currently selected") }
+        if matchesTheme    { parts.append("matches your active theme") }
+        if isLocked        { parts.append("premium, locked") }
+        return parts.joined(separator: ", ")
     }
 }
 

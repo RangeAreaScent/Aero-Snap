@@ -23,6 +23,9 @@ struct ACRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Advisory Circular \(entry.acNumber), \(entry.title)")
+        .accessibilityHint("Opens the AC detail with FAA.gov link")
         .contextMenu {
             Button {
                 _ = Pasteboard.copy(entry.acNumber)
