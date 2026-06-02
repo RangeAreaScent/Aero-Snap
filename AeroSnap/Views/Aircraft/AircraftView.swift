@@ -8,6 +8,51 @@ import SwiftUI
 struct TCDSDetailView: View {
     let tcds: TCDSummary
 
+    /// Decode the `specifications` JSON blob into ordered key/value
+    /// pairs for display. Returns an empty array on parse failure
+    /// (treat as if no specs were provided).
+    private var specs: [(label: String, value: String)] {
+        guard let data = tcds.specifications.data(using: .utf8),
+              let raw = try? JSONSerialization.jsonObject(with: data),
+              let dict = raw as? [String: Any]
+        else {
+            return []
+        }
+        // Stable display order: known keys first, then anything else
+        // alphabetically. Curators add new keys ad-hoc so this can't
+        // be exhaustive — unknown keys still render, just at the end.
+        let preferredOrder = [
+            "common_name", "family",
+            "engine", "engine_options",
+            "category", "notable",
+            "seats", "mtow_lbs",
+        ]
+        let prettyLabel: [String: String] = [
+            "common_name":    "Common name",
+            "family":         "Family",
+            "engine":         "Engine",
+            "engine_options": "Engine options",
+            "category":       "Airworthiness category",
+            "notable":        "Notable",
+            "seats":          "Seats",
+            "mtow_lbs":       "MTOW (lbs)",
+        ]
+        var ordered: [(String, String)] = []
+        var seen = Set<String>()
+        for key in preferredOrder {
+            if let value = dict[key] {
+                ordered.append((prettyLabel[key] ?? key,
+                                "\(value)"))
+                seen.insert(key)
+            }
+        }
+        for key in dict.keys.sorted() where !seen.contains(key) {
+            ordered.append((key.replacingOccurrences(of: "_", with: " ").capitalized,
+                            "\(dict[key]!)"))
+        }
+        return ordered
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -27,13 +72,34 @@ struct TCDSDetailView: View {
                     .font(.callout)
                     .textSelection(.enabled)
 
+                if !specs.isEmpty {
+                    Divider()
+                    Text("Specifications").font(.caption.bold().smallCaps())
+                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(specs, id: \.label) { row in
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(row.label)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 130, alignment: .leading)
+                                Text(row.value)
+                                    .font(.caption)
+                                    .textSelection(.enabled)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+
                 Divider()
                 Text("Find ADs that apply").font(.caption.bold().smallCaps())
                     .foregroundStyle(.secondary)
                 NavigationLink {
                     ADsForTCDSView(tcds: tcds)
                 } label: {
-                    Label("View applicable ADs", systemImage: "exclamationmark.triangle")
+                    Label("View applicable ADs",
+                          systemImage: "arrow.triangle.branch")
                 }
             }
             .padding()
@@ -67,20 +133,58 @@ struct TCDSDetailView: View {
 struct ADsForTCDSView: View {
     let tcds: TCDSummary
     @State private var ads: [ADSummary] = []
+    @State private var loaded = false
+
+    /// Query needle = "<manufacturer> <first model>". Joining both
+    /// gives the applicability JOIN's token-AND matcher both signals
+    /// to filter on, vs the old "first model only" approach which
+    /// over-matched for short model strings like Beech 35 → "35".
+    private var queryNeedle: String {
+        let firstModel = tcds.models
+            .split(separator: ",")
+            .first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+        // Manufacturer often has corporate suffixes ("Cessna Aircraft
+        // Company") that don't appear in applicability rows. Take the
+        // first word as a proxy — "Cessna", "Piper", "Boeing", etc.
+        let mfrShort = tcds.manufacturer
+            .split(separator: " ")
+            .first.map(String.init) ?? tcds.manufacturer
+        return "\(mfrShort) \(firstModel)"
+    }
 
     var body: some View {
-        List(ads) { ad in
-            NavigationLink(value: SearchHit.ad(ad)) {
-                ADRow(summary: ad)
+        Group {
+            if !loaded {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if ads.isEmpty {
+                ContentUnavailableView {
+                    Label("No matching ADs", systemImage: "checkmark.shield")
+                } description: {
+                    Text("No AD in the bundled corpus references \(tcds.manufacturer) \(tcds.models.split(separator: ",").first ?? "").")
+                } actions: {
+                    Text("Searched: \(queryNeedle.lowercased())")
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(.tertiary)
+                }
+            } else {
+                List(ads) { ad in
+                    NavigationLink(value: SearchHit.ad(ad)) {
+                        ADRow(summary: ad)
+                    }
+                }
             }
         }
-        .navigationTitle("ADs · \(tcds.tcdsNumber)")
+        .navigationTitle(ads.isEmpty ? "ADs · \(tcds.tcdsNumber)"
+                                     : "ADs · \(tcds.tcdsNumber) (\(ads.count))")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            if let firstModel = tcds.models.split(separator: ",").first {
-                let needle = firstModel.trimmingCharacters(in: .whitespaces)
-                ads = await AeroRepository.shared.searchADByMakeModel(needle)
-            }
+            // Generous limit — the "ADs for this aircraft" view is
+            // curated for one type, not a search result page.
+            ads = await AeroRepository.shared.searchADByMakeModel(
+                queryNeedle, limit: 500
+            )
+            loaded = true
         }
         .navigationDestination(for: SearchHit.self) { hit in
             switch hit {

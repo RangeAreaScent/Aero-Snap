@@ -1,10 +1,17 @@
 # TCDS Curation Plan — v1 Ship Target
 
-**Status (2026-06-01):** 62 of 200 entries curated (`tcds_seed.jsonl`).
-Batch 2 added 19 high-confidence commodity GA + retired-transport
-entries — see the `// === Batch 2: ...` separator in the seed file.
-Each batch-2 entry should be re-verified against the actual FAA DRS
-PDF before App Store submission.
+**Status (2026-06-01):** 63 of 200 entries curated (`tcds_seed.jsonl`).
+Batch 2 added 19 commodity GA + transport entries; batch 3 added 1
+more (American Champion 7-/8-series, A-759). Each batch-2/3 entry
+should be re-verified against the actual FAA DRS PDF before App
+Store submission.
+
+**Engines / propellers remain at minimal coverage** because TCDS
+numbers in the E-xxx / P-xxx series aren't well-cited in maintenance
+literature and memory-based additions risk pointing the in-app
+PDF link to the wrong type. A future curation pass should pull
+these directly from the FAA DRS PDFs or fall back to the EASA TCDS
+mirror (see `DRS_RESEARCH.md`).
 
 The pipeline now fails the build if two seed rows share the same
 `tcds_number` (caught at `extract_tcds.py` time, before SQLite
@@ -32,7 +39,7 @@ queries while staying small enough that one curator can finish it in
 | Turbine engines | 10 | 4 | CFM56, LEAP-1A, JT9D, GEnx. Still needed: P&W PT6A series, JT8D, PW100, PW1000G, GE CF6, CF34, GE9X, RR Trent series |
 | Propellers | 15 | 0 | All needed: Hartzell HC-A2X / HC-C2YK / HC-E3Y / Top-Prop, McCauley A/B/C/1A/2A/3A, Sensenich M/W series, MT-Propeller |
 
-Totals: 200 target, 62 in hand — 138 to research.
+Totals: 200 target, 63 in hand — 137 to research.
 
 ## Curation workflow
 
