@@ -26,18 +26,27 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build for iOS Simulator (iPhone 17)
-        # OS=latest because the GitHub Actions macos-15 runner image
-        # tracks Xcode/iOS-SDK on its own cadence — pinning to 26.5
-        # silently breaks when the runner pre-installs only 26.4 or
-        # downgrades. Local dev pins to 26.5 explicitly (see HANDOFF).
+      - name: Build for iOS Simulator (generic slice)
+        # The macos-15 runner ships Xcode 16.4 (iOS 18 SDK). Our project
+        # targets iOS 26.5 and uses the "iPhone 17" sim — both newer than
+        # anything the runner has, so a named-device destination fails
+        # with exit 70. Two compromises:
+        #   - destination `generic/platform=iOS Simulator` builds the
+        #     simulator slice without picking a concrete device, so it
+        #     works on whatever SDK the runner happens to ship.
+        #   - IPHONEOS_DEPLOYMENT_TARGET=18.0 overrides the project's
+        #     26.5 target for this build only; the local Xcode build
+        #     still uses 26.5 because project.yml says so.
+        # If we ever rely on iOS-26.5-only API the CI will fail loudly
+        # and we revisit (newer runner image / drop the build job).
         run: |
           xcodebuild build \
             -project AeroSnap.xcodeproj \
             -scheme AeroSnap \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            IPHONEOS_DEPLOYMENT_TARGET=18.0
 
   pipeline-lint:
     name: data-pipeline — Python syntax + TCDS seed validity
