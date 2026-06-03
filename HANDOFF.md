@@ -1,14 +1,30 @@
 # Aero Snap iOS — Handoff
 
+> **Pick up here in a new session.** Both the iOS and desktop ports are
+> feature-complete as of 2026-06-03. The desktop has an unsigned macOS
+> alpha public on GitHub Releases; the iOS app is waiting on the
+> Apple Developer cert (~2026-06-30) to start App Store submission.
+> The next significant workstream is the **EU sister wave** (EASA
+> corpus — see Overview → Regional split). Sibling HANDOFFs:
+> - this file → iOS port + data pipeline + decisions log
+> - [`../Aero-Snap_Mac_Win_app/HANDOFF.md`](../Aero-Snap_Mac_Win_app/HANDOFF.md) → desktop port (Tauri 2)
+>
+> Start any new session by reading the manager block immediately below
+> and the **Next 3 steps** line — that's the authoritative state.
+
 <!-- snap-series:manager-block:start -->
 - **App:** Aero Snap
-- **Platform:** iOS (Swift 6.0, iOS 26.5+, Xcode 26.5) + Desktop scaffold (Tauri 2 + React 19 + TS, macOS + Windows)
+- **Platform:** iOS (Swift 6.0, iOS 26.5+, Xcode 26.5) + Desktop (Tauri 2 + React 19 + TS, macOS Apple Silicon shipping today; Intel + Windows + Linux pending cross-platform CI)
 - **Wave:** 3
-- **Stage:** 2 feature-complete iOS + 0 scaffold desktop — **iOS parked** (App Store gated on Apple Developer cert), **desktop scaffold landed** (builds clean, runs Search/FAR/TCDS/About against the shared SQLite). **Next sister wave: Aero Snap (EU)** — EASA AD / CS-XX / EASA TCDS / AMC variant of the same architecture.
-- **Last updated:** 2026-06-02
-- **Repo:** github.com/RangeAreaScent/Aero-Snap (public, switch to private at release stabilization)
-- **Latest release:** none
-- **Latest CI:** GitHub Actions green — `ios-build` + `pipeline-lint` jobs on every push/PR
+- **Stage:** 2 feature-complete iOS (App Store submission gated on Apple Developer cert) + 3 feature-complete desktop with first public unsigned-alpha release out. **Both ports park here.** Next sister wave: **Aero Snap (EU)** — EASA AD / CS-XX / EASA TCDS / AMC variant of the same architecture.
+- **Last updated:** 2026-06-03
+- **Repos:**
+  - iOS: [github.com/RangeAreaScent/Aero-Snap](https://github.com/RangeAreaScent/Aero-Snap) — public
+  - Desktop: [github.com/RangeAreaScent/Aero-Snap-Desktop](https://github.com/RangeAreaScent/Aero-Snap-Desktop) — public
+- **Latest release:**
+  - iOS — none (App Store submission pending Apple Developer cert)
+  - Desktop — [`v1.0.0-alpha`](https://github.com/RangeAreaScent/Aero-Snap-Desktop/releases/tag/v1.0.0-alpha) (unsigned macOS aarch64, .dmg + .app.zip, 2026-06-03)
+- **Latest CI:** iOS — GitHub Actions green (`ios-build` + `pipeline-lint`). Desktop — no CI yet (manual local builds; Tauri build-matrix is a Roadmap item)
 - **Bundle id:** com.ryan.aerosnap (locked at scaffold per §4)
 - **Dataset:** **v1 stamped 2026-06-01** — `AeroSnap/Resources/aero_snap_v1.sqlite` (86 MB, gitignored). 9,408 unique ADs (deduped from 9,691 Federal Register rows — see `build_db.py` dedup logging) + 9,814 applicability rows + 1,022 FAR sections + 62 curated TCDS + 779 AC. 4,007 older AD bodies dropped per 15-yr cutoff; summary + Federal Register links retained. Query timing on real corpus: AD# / ATA / FTS lookups <0.1 ms median, Make/Model JOIN ~8 ms.
 - **Deviations from playbook:**
@@ -37,11 +53,13 @@
   - ✅ **SecretTapDetector (2026-06-02)** — ported from ICDSnap, attached to the AboutView version row. 6-tap pattern (3 double-tap pairs with ~2s gaps) calls `PurchaseManager.debugToggleUnlock()` so App Store reviewers + beta testers can audit premium themes/icons without a Sandbox purchase. Trick is `accessibilityHidden(true)` so VoiceOver doesn't expose it.
   - ✅ **CI on macos-15 runner (2026-06-02)** — runner ships Xcode 16.4 (iOS 18 SDK) which can't compile against iOS 26.5 or find an "iPhone 17" sim. Workaround: CI uses `generic/platform=iOS Simulator` + `IPHONEOS_DEPLOYMENT_TARGET=18.0` override; local/release builds stay at 26.5. Will revisit when `macos-26` runner image lands or if we adopt iOS-26.5-only API.
   - ✅ **Desktop scaffold (2026-06-02)** — `../Aero-Snap_Mac_Win_app/` cloned from the LOINC Snap desktop base (Tauri 2 + React 19 + TS + rusqlite + printpdf), domain swept clean (zero LOINC strings outside heritage comments). Rust `aero.rs` mirrors the iOS Repository's 5 search modes + detail + applicability + meta. React shell: 4 tabs (Search / FAR / TCDS / About) wired to live SQLite. `tsc --noEmit` clean, `cargo check` clean, `vite build` 512 ms. Same `aero_snap_v1.sqlite` bundled — iOS and desktop ship the identical corpus.
+  - ✅ **Desktop Stage 1 → 2 → 3 (2026-06-02)** — full port of the iOS UX: AD detail + Notes (Stage 1) → Favorites + Collections + Export + Onboarding (Stage 2) → Settings pane + theme picker + Lemon Squeezy license + FAR/TCDS detail + Pin-to-folder + SecretTapDetector + ⌘1..7 keyboard shortcuts (Stage 3). Two polish rounds (global premium prompt + scroll-top + Lemon Squeezy CTA + bulk-add + system tray + Cmd+Shift+A global hotkey) and a stability sweep (`tsc --strict` 0 / `cargo clippy -D warnings` 0 / runtime boot test passes). Detailed Stage history in `../Aero-Snap_Mac_Win_app/HANDOFF.md`.
+  - ✅ **Desktop alpha release (2026-06-03)** — `v1.0.0-alpha` published at https://github.com/RangeAreaScent/Aero-Snap-Desktop/releases — unsigned macOS aarch64 .dmg (36 MB) + .app.zip (29 MB). First-launch Gatekeeper bypass documented in the release notes. Intel + Windows + Linux pending cross-platform CI; notarization pending Apple Developer cert.
 - **Next 3 steps:**
-  1. **Continue the desktop port** — `../Aero-Snap_Mac_Win_app/` has the scaffold (4 tabs against live SQLite). Next: port iOS's AD detail view + Favorites/Collections + PDF/CSV export UI + theme/icon pickers + onboarding + the SecretTapDetector trick. Same domain shapes; rusqlite query layer is in place.
-  2. **Spin up Aero Snap (EU)** — sister wave repeating the iOS + desktop pattern with the European corpus: **EASA ADs** (not FAA ADs) from the EASA Safety Publishing Tool, **CS-XX** (Certification Specifications: CS-23/25/E/P/VLA/…) in place of 14 CFR, **EASA TCDS** in place of FAA TCDS, **AMC / GM** (Acceptable Means of Compliance / Guidance Material) in place of FAA Advisory Circulars. New repo: `Aero-Snap_EU/` (iOS) + `Aero-Snap_EU_Mac_Win_app/` (desktop). Architecture, themes, icon family, UI, Tauri scaffold all reuse; only the data pipeline + a few domain labels (AD# format, citation format) differ. See `memory/project_aero_decisions.md` for the (US) vs (EU) split rationale once decided.
-  3. Apple Developer cert lands (~2026-06-30) → register the supporter SKU for both regional builds, wire StoreKit, validate PremiumUnlockSheet end-to-end. App Store metadata + screenshot sets for both. Continue TCDS curation toward 100/200 in parallel (source-based work — open DRS PDFs and append to `tcds_seed.jsonl`).
-- **Report-back trigger:** any commit on main, any tag push, any new blocker, any SPEC change, any data-pipeline milestone, first successful TestFlight upload
+  1. **Spin up Aero Snap (EU)** — sister wave repeating the iOS + desktop pattern with the European corpus: **EASA ADs** (not FAA ADs) from the EASA Safety Publishing Tool, **CS-XX** (Certification Specifications: CS-23/25/E/P/VLA/…) in place of 14 CFR, **EASA TCDS** in place of FAA TCDS, **AMC / GM** (Acceptable Means of Compliance / Guidance Material) in place of FAA Advisory Circulars. New repos: `Aero-Snap-EU` (iOS) + `Aero-Snap-Desktop-EU`. Architecture, themes, icon family, UI, Tauri scaffold all reuse; only the data pipeline + a few domain labels (AD# format, citation format, regulator name) differ.
+  2. **Apple Developer cert lands (~2026-06-30)** → register the supporter SKU, wire StoreKit for iOS, notarize the desktop .dmg (so the Gatekeeper warning goes away), set up a Windows code-signing cert for the .msi. App Store metadata + screenshot sets for iOS. Lemon Squeezy product page goes live → desktop alpha gets a stable checkout URL (already placeholdered).
+  3. **Cross-platform desktop CI** — GitHub Actions Tauri build matrix (macOS Intel + ARM, Windows, optional Linux). One workflow tags `v1.0.0-beta` and auto-uploads bundles to a Release. Continue TCDS curation toward 100/200 in parallel (source-based work — open DRS PDFs, append to `tcds_seed.jsonl`).
+- **Report-back trigger:** any commit on main, any tag push, any new blocker, any SPEC change, any data-pipeline milestone, first successful TestFlight upload, first signed desktop release
 <!-- snap-series:manager-block:end -->
 
 ## Overview
@@ -50,12 +68,13 @@ Aero Snap is the iOS side of the **FAA** Airworthiness Directives +
 14 CFR + TCDS reference. See `SPEC.md` at this project root for the
 as-built domain spec.
 
-The desktop sibling at `../Aero-Snap_Mac_Win_app/` is scaffolded as
-of 2026-06-02 (Tauri 2 + React 19 + TS, ships the same bundled
-SQLite). It currently exposes the 4 read-only tabs (Search / FAR /
-TCDS / About); rich UI (Favorites / Collections / AD detail / theme
-picker / icon picker / onboarding / SecretTapDetector) ports from
-iOS in follow-up sessions.
+The desktop sibling lives at `../Aero-Snap_Mac_Win_app/` (also at
+[github.com/RangeAreaScent/Aero-Snap-Desktop](https://github.com/RangeAreaScent/Aero-Snap-Desktop)).
+It's **feature-complete** as of 2026-06-03 and shipping its first
+public unsigned-alpha build for macOS Apple Silicon
+([v1.0.0-alpha download](https://github.com/RangeAreaScent/Aero-Snap-Desktop/releases/tag/v1.0.0-alpha)).
+Architecture, file map, recipes, QA checklist, release plan all in
+its own HANDOFF.
 
 ### Regional split (planned)
 
@@ -68,7 +87,7 @@ parallel **EU / EASA** wave is queued next:
 | Regs | 14 CFR (Parts 39/43/65/91/121/135/145/147 …) | CS-XX (CS-23 / CS-25 / CS-E / CS-P / CS-VLA …) + Part-M / Part-145 / Part-66 |
 | TCDS | FAA TCDS (DRS) — curated 62/200 | EASA TCDS — separate corpus |
 | ACs | FAA Advisory Circulars | EASA AMC / GM (Acceptable Means of Compliance / Guidance Material) |
-| Repo | `RangeAreaScent/Aero-Snap` + `…_Mac_Win_app` | `RangeAreaScent/Aero-Snap-EU` + `…-EU_Mac_Win_app` (TBD) |
+| Repo | [`Aero-Snap`](https://github.com/RangeAreaScent/Aero-Snap) + [`Aero-Snap-Desktop`](https://github.com/RangeAreaScent/Aero-Snap-Desktop) | `Aero-Snap-EU` + `Aero-Snap-Desktop-EU` (TBD) |
 | Bundle id | `com.ryan.aerosnap` | `com.ryan.aerosnap.eu` (planned) |
 
 Architecture, themes, icon family, copy patterns, disclaimer
